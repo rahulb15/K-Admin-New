@@ -9,6 +9,8 @@ import MatLayout from "./components/MatLayout/MatLayout";
 
 import materialRoutes from "app/views/material-kit/MaterialRoutes";
 
+import AppTable from "./views/material-kit/tables/AppTable";
+
 // SESSION PAGES
 const NotFound = Loadable(lazy(() => import("app/views/sessions/NotFound")));
 const JwtLogin = Loadable(lazy(() => import("app/views/sessions/JwtLogin")));
@@ -22,6 +24,8 @@ const Analytics = Loadable(lazy(() => import("app/views/dashboard/Analytics")));
 const PaymentGateway = Loadable(lazy(() => import("app/views/config/PaymentGateway")));
 //ticker controller
 const TickerController = Loadable(lazy(() => import("app/views/config/TickerController")));
+
+const Users = Loadable(lazy(() => import("app/views/users/users")));
 
 const routes = [
   {
@@ -38,7 +42,9 @@ const routes = [
       { path: "/config/payment-gateway", element: <PaymentGateway />, auth: authRoles.admin },
       { path: "/config/ticker-controller", element: <TickerController />, auth: authRoles.admin },
       // e-chart route
-      { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor }
+      { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor },
+      // user route
+      { path: "/users", element: <Users />, auth: authRoles.admin },
     ]
   },
 

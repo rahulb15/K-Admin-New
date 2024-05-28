@@ -45,8 +45,26 @@ const getConfig = async () => {
   }
 };
 
+//get all users with pagination and search with post api
+const getUsers = async (page: number, limit: number, search: string) => {
+  try {
+    const response = await axios.post(`${url}/user/getAllUsers`, {
+      page,
+      limit,
+      search
+    });
+
+    console.log("🚀 ~ getUsers ~ response:", response)
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export default {
   login,
   createConfig,
-  getConfig
+  getConfig,
+  getUsers
 };
