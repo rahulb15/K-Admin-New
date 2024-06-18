@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const url = "http://localhost:5000/api/v1";
+const url = process.env.REACT_APP_API_URL;
 
 //get all users with pagination and search with post api
 const getAll = async (page: number, limit: number, search: string) => {
