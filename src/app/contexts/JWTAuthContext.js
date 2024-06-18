@@ -2,6 +2,7 @@ import { createContext, useEffect, useReducer } from "react";
 import axios from "axios";
 // CUSTOM COMPONENT
 import { MatLoading } from "app/components";
+const url = "http://localhost:5000/api/v1";
 
 const initialState = {
   user: null,
@@ -47,10 +48,24 @@ export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
 
   const login = async (email, password) => {
-    const response = await axios.post("/api/auth/login", { email, password });
-    const { user } = response.data;
+    try {
+      const user = await axios.post(`${url}/admin/login`, {
+        email,
+        password
+      });
+      console.log(user);
+      if (user.data.status === "success") {
+        dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+        localStorage.setItem("token", user.data.token);
+      }
+      return user.data;
+      // dispatch({ type: "LOGIN", payload: { user } });
+    } catch (error) {
+      return error.response.data;
+    }
 
-    dispatch({ type: "LOGIN", payload: { user } });
+    // const response = await axios.post("/api/auth/login", { email, password });
+    // const { user } = response.data;
   };
 
   const register = async (email, username, password) => {
@@ -62,13 +77,26 @@ export const AuthProvider = ({ children }) => {
 
   const logout = () => {
     dispatch({ type: "LOGOUT" });
+    localStorage.removeItem("token");
   };
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get("/api/auth/profile");
-        dispatch({ type: "INIT", payload: { isAuthenticated: true, user: data.user } });
+        const token = localStorage.getItem("token");
+        console.log(token);
+        if (!token) throw new Error("User not authenticated");
+        const headers = { Authorization: `Bearer ${token}` };
+        const { data } = await axios.post(`${url}/admin/me`, null, { headers });
+        console.log(data);
+
+        console.log(data);
+        if (data.status === "success") {
+          console.log(data.data);
+          dispatch({ type: "INIT", payload: { isAuthenticated: true, user: data.data } });
+        }
+
+        // dispatch({ type: "INIT", payload: { isAuthenticated: true, user: data.user } });
       } catch (err) {
         console.error(err);
         dispatch({ type: "INIT", payload: { isAuthenticated: false, user: null } });

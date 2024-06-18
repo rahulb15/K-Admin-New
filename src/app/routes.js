@@ -27,6 +27,10 @@ const TickerController = Loadable(lazy(() => import("app/views/config/TickerCont
 
 const Users = Loadable(lazy(() => import("app/views/users/users")));
 
+const ApplyLaunchpad = Loadable(
+  lazy(() => import("app/views/launchpad/apply-launchpad/ApplyLaunchpad"))
+);
+
 const routes = [
   {
     element: (
@@ -45,6 +49,8 @@ const routes = [
       { path: "/charts/echarts", element: <AppEchart />, auth: authRoles.editor },
       // user route
       { path: "/users", element: <Users />, auth: authRoles.admin },
+      // launchpad route
+      { path: "/launchpad/apply-launchpad", element: <ApplyLaunchpad />, auth: authRoles.admin },
     ]
   },
 

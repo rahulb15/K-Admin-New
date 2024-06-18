@@ -3,6 +3,12 @@ export const navigations = [
   { label: "PAGES", type: "label" },
   { name: "Users", path: "/users", icon: "people" },
   {
+    name: "Launchpad",
+    path: "/launchpad",
+    icon: "launch",
+    children: [{ name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL" }]
+  },
+  {
     name: "Config",
     path: "/config",
     icon: "settings",

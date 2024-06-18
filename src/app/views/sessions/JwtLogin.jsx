@@ -47,8 +47,8 @@ const StyledRoot = styled("div")(() => ({
 
 // initial login credentials
 const initialValues = {
-  email: "jason@ui-lib.com",
-  password: "dummyPass",
+  email: "superadmin@yopmail.com",
+  password: "superadmin",
   remember: true
 };
 
@@ -65,13 +65,16 @@ export default function JwtLogin() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, user } = useAuth();
 
   const handleFormSubmit = async (values) => {
     setLoading(true);
     try {
-      await login(values.email, values.password);
-      navigate("/dashboard");
+      const response = await login(values.email, values.password);
+      console.log(response);
+      if (response.status === "success") {
+        navigate("/dashboard");
+      }
     } catch (e) {
       setLoading(false);
     }

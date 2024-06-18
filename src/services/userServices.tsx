@@ -15,8 +15,7 @@ const login = async (email: string, password: string) => {
 };
 
 const createConfig = async (key: string, value: string) => {
-  const token =
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY1ZjZiMTA5Mzg4M2E5ZGM0ZTYzMmY5YiIsImlhdCI6MTcxMTQ1MDE0NywiZXhwIjoxNzExNTM2NTQ3fQ.P5M-uKbBiu_18AvppOTIewcdBSrySFmn3T_b9AXrM-s";
+  const token = localStorage.getItem("token");
   const headers = {
     "Content-Type": "application/json",
     Authorization: `Bearer ${token}`
