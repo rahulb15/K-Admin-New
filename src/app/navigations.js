@@ -6,18 +6,55 @@ export const navigations = [
     name: "Launchpad",
     path: "/launchpad",
     icon: "launch",
-    children: [{ name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL" }]
+    children: [
+      {
+        name: "Apply Launchpad",
+        path: "/launchpad/apply-launchpad",
+        iconText: "AL",
+      },
+    ],
   },
+  {
+    name: "Payments",
+    path: "/payments",
+    icon: "payment",
+    children: [
+      { name: "Deposits", path: "/payments/deposits", iconText: "D" },
+      // { name: "Withdrawals", path: "/payments/withdrawals", iconText: "W" },
+      { name: "Transactions", path: "/payments/transactions", iconText: "T" },
+    ],
+  },
+
   {
     name: "Config",
     path: "/config",
     icon: "settings",
     children: [
-      { name: "Payment Gateway", path: "/config/payment-gateway", iconText: "PG" },
-      { name: "Ticker Controller", path: "/config/ticker-controller", iconText: "TC" }
-    ]
+      {
+        name: "Payment Gateway",
+        path: "/config/payment-gateway",
+        iconText: "PG",
+      },
+      {
+        name: "Ticker Controller",
+        path: "/config/ticker-controller",
+        iconText: "TC",
+      },
+      { name: "Layout", path: "/config/layout", iconText: "L" },
+    ],
   },
-  { name: "Settings", path: "/settings", icon: "settings" }
+
+  {
+    name: "Blog",
+    path: "/blog",
+    icon: "description",
+    children: [
+      { name: "Create Blog", path: "/blog/create-blog", iconText: "CB" },
+      { name: "Blog List", path: "/blog/blog-list", iconText: "BL" },
+    ],
+  },
+
+  { name: "Settings", path: "/settings", icon: "settings" },
   // {
   //   name: "Session/Auth",
   //   icon: "security",

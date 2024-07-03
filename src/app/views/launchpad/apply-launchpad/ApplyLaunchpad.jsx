@@ -48,13 +48,13 @@ export default function ApplyLaunchpad() {
   const [data, setData] = useState([]);
   const [refresh, setRefresh] = useState(false);
 
-  useEffect(() => {
-    if (user?.role === "superadmin") {
-      console.log("superadmin");
-    } else if (user?.role === "admin") {
-      navigate("/dashboard");
-    }
-  }, [user?.role]);
+  // useEffect(() => {
+  //   if (user?.role === "superadmin") {
+  //     console.log("superadmin");
+  //   } else if (user?.role === "admin") {
+  //     navigate("/dashboard");
+  //   }
+  // }, [user?.role]);
 
   useEffect(() => {
     launchapadServices

@@ -1,6 +1,10 @@
+import {React, useEffect, useState} from "react";
 import { Box, Card, Grid, IconButton, styled, Tooltip } from "@mui/material";
 import { AttachMoney, Group, ArrowRightAlt } from "@mui/icons-material";
 import { Small } from "app/components/Typography";
+import userServices from "services/userServices.tsx";
+import useAuth from "app/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 // STYLED COMPONENTS
 const StyledCard = styled(Card)(({ theme }) => ({
@@ -30,15 +34,33 @@ const Heading = styled("h6")(({ theme }) => ({
 }));
 
 export default function StatCards() {
+  const [totalUsers, setTotalUsers] = useState(0);
+  const { user } = useAuth();
+
+  useEffect(() => {
+    userServices.getTotalUsers(user?.role).then((res) => {
+      console.log(res);
+      setTotalUsers(res.data);
+    });
+  }
+  , []);
+
+  console.log("totalUsers", totalUsers);
+
+
+
+
+
+
   const cardList = [
-    { name: "Total Users", amount: 3050, Icon: Group },
-    { name: "This week Sales", amount: "$80,500", Icon: AttachMoney },
+    { name: "Total Users", amount: totalUsers || 0, Icon: Group, navigate: "/users" },
+    { name: "This week Sales", amount: "$80,500", Icon: AttachMoney, navigate: "/sales" }
     // { name: "This month Sales", amount: "$200,000", Icon: AttachMoney }
   ];
 
   return (
     <Grid container spacing={3} sx={{ mb: "24px" }}>
-      {cardList.map(({ amount, Icon, name }) => (
+      {cardList.map(({ amount, Icon, name, navigate }) => (
         <Grid item xs={12} md={6} key={name}>
           <StyledCard elevation={6}>
             <ContentBox>
@@ -52,7 +74,10 @@ export default function StatCards() {
 
             <Tooltip title="View Details" placement="top">
               <IconButton>
-                <ArrowRightAlt />
+                {/* <ArrowRightAlt /> */}
+                <Link to={navigate}>
+                  <ArrowRightAlt />
+                </Link>
               </IconButton>
             </Tooltip>
           </StyledCard>
