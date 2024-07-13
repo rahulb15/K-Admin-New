@@ -10,10 +10,16 @@ import routes from "./routes";
 // FAKE SERVER
 import "../fake-db";
 
+import { Provider } from "react-redux";
+import { store, persistor } from "../store/store";
+import { PersistGate } from "redux-persist/integration/react";
+
 export default function App() {
   const content = useRoutes(routes);
 
   return (
+    <Provider store={store}>
+            <PersistGate loading={null} persistor={persistor}>
     <SettingsProvider>
       <AuthProvider>
         <MatTheme>
@@ -22,5 +28,7 @@ export default function App() {
         </MatTheme>
       </AuthProvider>
     </SettingsProvider>
+    </PersistGate>
+    </Provider>
   );
 }
