@@ -1,13 +1,12 @@
+// Sidenav.js
+
 import { Fragment } from "react";
 import { styled } from "@mui/material/styles";
 import Scrollbar from "react-perfect-scrollbar";
 import useAuth from "app/hooks/useAuth";
-
 import { MatVerticalNav } from "app/components";
 import useSettings from "app/hooks/useSettings";
-// import { navigations } from "app/navigations";
 
-// STYLED COMPONENTS
 const StyledScrollBar = styled(Scrollbar)(() => ({
   paddingLeft: "1rem",
   paddingRight: "1rem",
@@ -29,7 +28,6 @@ const SideNavMobile = styled("div")(({ theme }) => ({
 export default function Sidenav({ children }) {
   const { settings, updateSettings } = useSettings();
   const { login, user } = useAuth();
-  console.log("user", user);
 
   const updateSidebarMode = (sidebarSettings) => {
     let activeLayoutSettingsName = settings.activeLayout + "Settings";
@@ -48,88 +46,47 @@ export default function Sidenav({ children }) {
   };
 
   const navigations = [
-    { name: "Dashboard", path: "/dashboard", icon: "dashboard" },
-    { label: "PAGES", type: "label" },
-    { name: "Users", path: "/users", icon: "people" },
-    {
-      name: "Launchpad",
-      path: "/launchpad",
-      icon: "launch",
-      children: [{ name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL" }]
-      // children: user?.role === "superadmin" ? [{ name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL" }] : []
-    },
-    {
-      name: "Blog",
-      path: "/blog",
-      icon: "description",
-      children: [
-        { name: "Create Blog", path: "/blog/create-blog", iconText: "CB" },
-        { name: "Blog List", path: "/blog/blog-list", iconText: "BL" }
-      ]
-    },
-    {
-      name: "Payments",
-      path: "/payments",
-      icon: "payment",
-      children: [
-        { name: "Deposits", path: "/payments/deposits", iconText: "D" },
-        // { name: "Withdrawals", path: "/payments/withdrawals", iconText: "W" },
-        { name: "Transactions", path: "/payments/transactions", iconText: "T" },
-      ],
-    },
-
-    {
-      name: "Config",
-      path: "/config",
-      icon: "settings",
-      children: [
-        { name: "Payment Gateway", path: "/config/payment-gateway", iconText: "PG" },
-        { name: "Ticker Controller", path: "/config/ticker-controller", iconText: "TC" },
-        { name: "Layout", path: "/config/layout", iconText: "L" }
-      ]
-    },
-    { name: "Settings", path: "/settings", icon: "settings" }
-    // {
-    //   name: "Session/Auth",
-    //   icon: "security",
-    //   children: [
-    //     { name: "Sign in", iconText: "SI", path: "/session/signin" },
-    //     { name: "Sign up", iconText: "SU", path: "/session/signup" },
-    //     { name: "Forgot Password", iconText: "FP", path: "/session/forgot-password" },
-    //     { name: "Error", iconText: "404", path: "/session/404" }
-    //   ]
-    // },
-    // { label: "Components", type: "label" },
-    // {
-    //   name: "Components",
-    //   icon: "favorite",
-    //   badge: { value: "30+", color: "secondary" },
-    //   children: [
-    //     { name: "Auto Complete", path: "/material/autocomplete", iconText: "A" },
-    //     { name: "Buttons", path: "/material/buttons", iconText: "B" },
-    //     { name: "Checkbox", path: "/material/checkbox", iconText: "C" },
-    //     { name: "Dialog", path: "/material/dialog", iconText: "D" },
-    //     { name: "Expansion Panel", path: "/material/expansion-panel", iconText: "E" },
-    //     { name: "Form", path: "/material/form", iconText: "F" },
-    //     { name: "Icons", path: "/material/icons", iconText: "I" },
-    //     { name: "Menu", path: "/material/menu", iconText: "M" },
-    //     { name: "Progress", path: "/material/progress", iconText: "P" },
-    //     { name: "Radio", path: "/material/radio", iconText: "R" },
-    //     { name: "Switch", path: "/material/switch", iconText: "S" },
-    //     { name: "Slider", path: "/material/slider", iconText: "S" },
-    //     { name: "Snackbar", path: "/material/snackbar", iconText: "S" },
-    //     { name: "Table", path: "/material/table", iconText: "T" }
-    //   ]
-    // },
+    { name: "Dashboard", path: "/dashboard", icon: "dashboard", roles: ["superadmin"] },
+    { label: "PAGES", type: "label", roles: ["superadmin"] },
+    { name: "Users", path: "/users", icon: "people", roles: ["superadmin"] },
+    { name: "Launchpad", path: "/launchpad", icon: "launch", roles: ["superadmin", "admin", "user"], children: [
+      { name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL", roles: ["superadmin"] },
+      { name: "Apply Launchpad", path: "/admin/launchpad/apply-launchpad", iconText: "AL", roles: ["user"] }
+    ] },
+    { name: "Blog", path: "/blog", icon: "description", roles: ["superadmin"], children: [
+      { name: "Create Blog", path: "/blog/create-blog", iconText: "CB", roles: ["superadmin"] },
+      { name: "Blog List", path: "/blog/blog-list", iconText: "BL", roles: ["superadmin"] }
+    ] },
+    { name: "Payments", path: "/payments", icon: "payment", roles: ["superadmin"], children: [
+      { name: "Deposits", path: "/payments/deposits", iconText: "D", roles: ["superadmin"] },
+      { name: "Transactions", path: "/payments/transactions", iconText: "T", roles: ["superadmin"] }
+    ] },
+    { name: "Config", path: "/config", icon: "settings", roles: ["superadmin"], children: [
+      { name: "Payment Gateway", path: "/config/payment-gateway", iconText: "PG", roles: ["superadmin"] },
+      { name: "Ticker Controller", path: "/config/ticker-controller", iconText: "TC", roles: ["superadmin"] },
+      { name: "Layout", path: "/config/layout", iconText: "L", roles: ["superadmin"] }
+    ] },
+    { name: "Settings", path: "/settings", icon: "settings", roles: ["superadmin"] }
   ];
+
+  const filteredNavigations = navigations.filter(navItem => {
+    console.log(navItem.roles + " " + user?.role);
+
+    if (navItem.roles.includes(user?.role)) {
+      if (navItem.children) {
+        navItem.children = navItem.children.filter(childItem => childItem.roles.includes(user?.role));
+      }
+      return true;
+    }
+    return false;
+  });
 
   return (
     <Fragment>
       <StyledScrollBar options={{ suppressScrollX: true }}>
         {children}
-        <MatVerticalNav items={navigations} />
+        <MatVerticalNav items={filteredNavigations} />
       </StyledScrollBar>
-
       <SideNavMobile onClick={() => updateSidebarMode({ mode: "close" })} />
     </Fragment>
   );

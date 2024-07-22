@@ -115,13 +115,13 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const login = async (email, password) => {
+  const superlogin = async (email, password) => {
     try {
       const response = await eckoWalletConnect();
       console.log(response);
       if (response.status === "success") {
         console.log(response);
-        const user = await axios.post(`${url}/admin/login`, {
+        const user = await axios.post(`${url}/superadmin/login`, {
           email,
           password,
           walletAddress: response.account.account,
@@ -180,6 +180,70 @@ export const AuthProvider = ({ children }) => {
     // const { user } = response.data;
   };
 
+  const login = async (username, password) => {
+    try {
+      const response = await eckoWalletConnect();
+      console.log(response);
+      if (response.status === "success") {
+        console.log(response);
+        const user = await axios.post(`${url}/admin/login`, {
+          username,
+          password,
+          walletAddress: response.account.account,
+        });
+        console.log(user);
+        if (user.data.status === "success") {
+          console.log(user.data.data.is2FAEnabled, "ddddddddddddddata");
+          if (user.data.data.is2FAEnabled === false) {
+            console.log("enable2FA");
+            const twofadata = await enable2FA(user.data.token);
+            console.log(twofadata);
+            if (
+              twofadata.qrCodeUrl &&
+              twofadata.secret &&
+              twofadata.qrCodeUrl !== "" &&
+              twofadata.secret !== ""
+            ) {
+              dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+              // localStorage.setItem("token", user.data.token);
+              user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+              user.data.data.secret = twofadata.secret;
+              user.data.data.is2FAModalOpen = true;
+              return user.data;
+            }
+          } else {
+            console.log("enable2FA");
+            const twofadata = await enable2FA(user.data.token);
+            console.log(twofadata);
+            if (twofadata.secret && twofadata.secret !== "") {
+              dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+              // localStorage.setItem("token", user.data.token);
+              user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+              user.data.data.secret = twofadata.secret;
+              user.data.data.is2FAModalOpen = true;
+              return user.data;
+            }
+          }
+
+          // dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+          // localStorage.setItem("token", user.data.token);
+        }else {
+          return user.data;
+        }
+
+        // return user.data;
+      } else {
+        return response;
+      }
+
+      // dispatch({ type: "LOGIN", payload: { user } });
+    } catch (error) {
+      return error.response.data;
+    }
+
+    // const response = await axios.post("/api/auth/login", { email, password });
+    // const { user } = response.data;
+  };
   const register = async (email, username, password) => {
     const response = await axios.post("/api/auth/register", {
       email,
@@ -231,7 +295,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, method: "JWT", login, logout, register }}
+      value={{ ...state, method: "JWT", login, superlogin, logout, register }}
     >
       {children}
     </AuthContext.Provider>

@@ -15,7 +15,9 @@ import { store, persistor } from "../store/store";
 import { PersistGate } from "redux-persist/integration/react";
 
 export default function App() {
+  console.log("routes", routes);
   const content = useRoutes(routes);
+  console.log("content", content);
 
   return (
     <Provider store={store}>
