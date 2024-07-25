@@ -56,6 +56,28 @@ const getColCreator = async (colName) => {
   }
 };
 
+const collectionId = async (colNameId) => {
+  const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(colNameId)})`;
+
+  const transaction = Pact.builder
+    .execution(pactCode)
+    .setMeta({ chainId: "1" })
+    .setNetworkId(NETWORKID)
+    .createTransaction();
+
+  const response = await client.local(transaction, {
+    preflight: false,
+    signatureVerification: false,
+  });
+
+  if (response.result.status == "success") {
+    let colId = response.result.data;
+    // alert(`Collection Id: ${colId}`);
+    console.log(colId);
+    return colId;
+  }
+};
+
 export const launchpadApi = createApi({
   reducerPath: "launchpadApi",
   baseQuery: fetchBaseQuery({ baseUrl: API_HOST }),
@@ -289,6 +311,33 @@ export const launchpadApi = createApi({
       },
     }),
 
+    collectionId: builder.mutation({
+      async queryFn(args) {
+        const { colNameId } = args;
+        console.log("colNameId", colNameId);
+        const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(
+          colNameId
+        )})`;
+
+        const transaction = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: "1" })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        const response = await client.local(transaction, {
+          preflight: false,
+          signatureVerification: false,
+        });
+
+        if (response.result.status == "success") {
+          let colId = response.result.data;
+          console.log(colId);
+          return colId;
+        }
+      },
+    }),
+
     createPresale: builder.mutation({
       async queryFn(args) {
         const {
@@ -483,6 +532,124 @@ export const launchpadApi = createApi({
         }
       },
     }),
+    unrevealedTokens: builder.mutation({
+      async queryFn(args) {
+        const { unrevealedColName } = args;
+        console.log("unrevealedColName", unrevealedColName);
+        const account = await getColCreator(unrevealedColName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.get-unrevealed-tokens-for-collection ${JSON.stringify(
+          unrevealedColName
+        )} (read-keyset  "guard"))`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("unrevealedTokens", txn);
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            console.log(localResponse.result.data);
+            return { data: localResponse.result.data };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+    syncWithNg: builder.mutation({
+      async queryFn(args, api, extraOptions, baseQuery) {
+        const { syncColName, syncTkns, wallet } = args;
+        console.log("args", args); 
+        // const colId = await api
+        //   .dispatch(
+        //     launchpadApi.endpoints.collectionId.initiate({
+        //       colNameId: syncColName,
+        //     })
+        //   )
+        //   .unwrap();
+        //   console.log("colId", colId);
+        const colId = await collectionId(syncColName);
+        const account = await getColCreator(syncColName);
+        console.log("account", account);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+        const formattedSyncTkns = `[${syncTkns}]`;
+
+
+        const pactCode = `(free.lptest001.bulk-sync-with-ng ${JSON.stringify(
+          syncColName
+        )} ${formattedSyncTkns})`;
+
+        console.log(pactCode);
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addData("marmalade_collection", { id: colId })
+          .addSigner(publicKey)
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("syncWithNg", txn);
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          console.log("response", localResponse.result.data);
+
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
   }),
 });
 
@@ -490,7 +657,10 @@ export const {
   useCollectionRequestMutation,
   useLaunchCollectionMutation,
   useCreateNgCollectionMutation,
+  useCollectionIdMutation,
   useCreatePresaleMutation,
   useCreateWlMutation,
   useCreateAirdropMutation,
+  useUnrevealedTokensMutation,
+  useSyncWithNgMutation,
 } = launchpadApi;

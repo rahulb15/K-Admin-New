@@ -7,7 +7,7 @@ const getAll = async (page: number, limit: number, search: string) => {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.get(`${url}/launch-collection/getAll?limit=${limit}&page=${page}&search=${search}`, {
+    const response = await axios.post(`${url}/launch-collection/getAll`,{limit, page, search}, {
       headers: {
         Authorization: `Bearer ${token}`
       }
@@ -75,7 +75,7 @@ const launchLaunchpad = async (id: string) => {
 const getAllApproved = async (page: number, limit: number, search: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.get(`${url}/launch-collection/getAllApproved?limit=${limit}&page=${page}&search=${search}`, {
+    const response = await axios.post(`${url}/launch-collection/getAllApproved`,{limit, page, search}, {
       headers: {
         Authorization: `Bearer ${token}`
       }

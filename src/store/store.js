@@ -6,9 +6,13 @@ import storage from 'redux-persist/lib/storage'
 // import { launchpadApi } from 'src/services/launchpad.service'
 import { launchpadApi } from '../services/launchpad.service'
 import launchpadReducer from '../features/launchpadSlice'
+import searchReducer from '../features/searchSlice'
+import selectionLaunchpadReducer from '../features/selectionLaunchpadSlice'
 
 const rootReducer = combineReducers({
     launchpad: launchpadReducer,
+    search: searchReducer,
+    selectionLaunchpad: selectionLaunchpadReducer,
     [launchpadApi.reducerPath]: launchpadApi.reducer,
 })
 
@@ -16,7 +20,7 @@ const persistConfig = {
     key: 'root',
     version: 1,
     storage,
-    whitelist: [ 'launchpad'],
+    whitelist: [ 'launchpad', 'selectionLaunchpad', 'search' ],
 }
 
 const persistedReducer = persistReducer(persistConfig, rootReducer)

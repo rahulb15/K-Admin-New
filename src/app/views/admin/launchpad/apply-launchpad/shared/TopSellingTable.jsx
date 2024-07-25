@@ -1,62 +1,45 @@
 // import { Edit } from "@mui/icons-material";
-import { Done, Close, Visibility } from "@mui/icons-material";
-import React, { useState, useEffect } from "react";
+import { Done, Visibility } from "@mui/icons-material";
 import {
-  Box,
-  Card,
-  Table,
-  Select,
   Avatar,
-  styled,
-  TableRow,
-  useTheme,
+  Box,
+  Button,
+  Card,
+  Checkbox,
+  Grid,
+  IconButton,
   MenuItem,
+  Modal,
+  Select,
+  Step,
+  StepLabel,
+  Stepper,
+  styled,
+  Table,
   TableBody,
   TableCell,
   TableHead,
-  IconButton,
-  Grid,
-  Modal,
+  TableRow,
   TextField,
-  Checkbox,
-  Button,
-  Stepper,
-  Step,
-  StepLabel,
   Typography,
+  useTheme,
 } from "@mui/material";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
-import dayjs from "dayjs";
-import Stack from "@mui/material/Stack";
-import PropTypes from "prop-types";
-import AppBar from "@mui/material/AppBar";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
+import { useState } from "react";
+
+import FormControl from "@mui/material/FormControl";
+import FormControlLabel from "@mui/material/FormControlLabel";
+import FormLabel from "@mui/material/FormLabel";
 import InputLabel from "@mui/material/InputLabel";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
-import FormControlLabel from "@mui/material/FormControlLabel";
-import FormControl from "@mui/material/FormControl";
-import FormLabel from "@mui/material/FormLabel";
-import UpgradeCard from "../shared/NotificationList";
-import { Paragraph } from "app/components/Typography";
-import launchapadServices from "services/launchapadServices.tsx";
-import collectionServices from "services/collectionServices.tsx";
-import paymentServices from "services/paymentServices.tsx";
 import useAuth from "app/hooks/useAuth";
-import { useForm, Controller } from "react-hook-form";
-import * as yup from 'yup';
-import { yupResolver } from '@hookform/resolvers/yup';
-import {
-  useCreatePresaleMutation,
-  useCreateWlMutation,
-  useCreateAirdropMutation,
-  useCreateNgCollectionMutation,
-} from "services/launchpad.service";
-import Swal from "sweetalert2";
-import moment from "moment";
+import PropTypes from "prop-types";
+import { useDispatch } from 'react-redux';
+import { useNavigate } from "react-router-dom";
+import paymentServices from "services/paymentServices.tsx";
+import UpgradeCard from "../shared/NotificationList";
+
+import { setSelection } from "features/selectionLaunchpadSlice";
 
 // STYLED COMPONENTS
 const CardHeader = styled(Box)(() => ({
@@ -124,28 +107,19 @@ TabPanel.propTypes = {
   value: PropTypes.number.isRequired,
 };
 
-function a11yProps(index) {
-  return {
-    id: `full-width-tab-${index}`,
-    "aria-controls": `full-width-tabpanel-${index}`,
-  };
-}
+
 
 export default function TopSellingTable(props) {
   console.log("🚀 ~ TopSellingTable ~ props:", props);
-  const { login, user } = useAuth();
-  console.log("🚀 ~ TopSellingTable ~ user:", user);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { palette } = useTheme();
   const bgError = palette.error.main;
   const bgPrimary = palette.primary.main;
-  const bgSecondary = palette.secondary.main;
   const [transactionData, setTransactionData] = useState({});
   const [open, setOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [disable, setDisable] = useState(true);
-  const [acceptModalOpen, setAcceptModalOpen] = useState(false);
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
-  const [id, setId] = useState("");
   const [selectedRow, setSelectedRow] = useState({});
   const [formData, setFormData] = useState({
     collectionName: "",
@@ -165,85 +139,9 @@ export default function TopSellingTable(props) {
     mintPriceCurrency: "",
     royaltyPercentage: "",
   });
-  const [createNgCollection] = useCreateNgCollectionMutation();
-  const [finalizeModalOpen, setFinalizeModalOpen] = useState(false);
-  const [finaliiizeSteps, setFinalizeSteps] = useState([]);
-  const [activeFinalizeStep, setActiveFinalizeStep] = useState(0);
-  const [startDateAndTime, setStartDateAndTime] = useState(null);
-  const [endDateAndTime, setEndDateAndTime] = useState(null);
-  const [presaleData, setPresaleData] = useState({
-    presaleStartDate: "",
-    presaleStartTime: "",
-    presaleEndDate: "",
-    presaleEndTime: "",
-    presaleMintPrice: "",
-  });
-  const [whitelistData, setWhitelistData] = useState({
-    createWlAdd: "",
-    createWlPrice: "",
-    createWlStartTime: "",
-  });
 
-  const [createPresale] = useCreatePresaleMutation();
-  const [createWl] = useCreateWlMutation();
-  const [createAirdrop] = useCreateAirdropMutation();
 
   const steps = ["Step 1", "Step 2"];
-
-  const presaleSchema = yup.object().shape({
-    startDateAndTime: yup.date().required("Start date and time is required"),
-    endDateAndTime: yup
-      .date()
-      .required("End date and time is required")
-      .min(yup.ref('startDateAndTime'), "End date must be after start date"),
-    presaleMintPrice: yup
-      .number()
-      .typeError("Price must be a number")
-      .positive("Price must be positive")
-      .required("Presale mint price is required"),
-    presaleAddress: yup
-      .string()
-      .required("Presale address is required")
-      .matches(/^(k:[a-zA-Z0-9]+,?)+$/, "Invalid address format. Use 'k:address1,k:address2'"),
-  });
-
-  const whitelistSchema = yup.object().shape({
-    createWlAdd: yup
-      .string()
-      .required("Whitelist address is required")
-      .matches(/^(k:[a-zA-Z0-9]+,?)+$/, "Invalid address format. Use 'k:address1,k:address2'"),
-    createWlPrice: yup
-      .number()
-      .typeError("Price must be a number")
-      .positive("Price must be positive")
-      .required("Whitelist price is required"),
-    createWlStartTime: yup
-      .date()
-      .nullable()
-      .required("Start time is required"),
-  });
-
-
-  const presaleForm = useForm({
-    mode: "onChange",
-    defaultValues: {
-      startDateAndTime: null,
-      endDateAndTime: null,
-      presaleMintPrice: "",
-      presaleAddress: "",
-    },
-    resolver: yupResolver(presaleSchema),
-  });
-
-  const whitelistForm = useForm({
-    mode: "onChange",
-    defaultValues: {
-      createWlAdd: '',
-      createWlPrice: '',
-      createWlStartTime: null, 
-    },
-    resolver: yupResolver(whitelistSchema),
-  });
 
   const handleOpen = (data) => {
     console.log("🚀 ~ handleOpen ~ data", data);
@@ -253,64 +151,7 @@ export default function TopSellingTable(props) {
   const handleClose = () => {
     setFormData({});
     setOpen(false);
-    setId("");
     setActiveStep(0);
-    setSelectedRow({});
-  };
-
-  const handleAcceptModalOpen = () => {
-    setAcceptModalOpen(true);
-  };
-
-  const handleAcceptModalClose = () => {
-    setAcceptModalOpen(false);
-    setId("");
-  };
-
-  const handleRejectModalOpen = () => {
-    setRejectModalOpen(true);
-  };
-
-  const handleFinalizeModalOpen = (data) => {
-    console.log("🚀 ~ handleFinalizeModalOpen ~ data", data);
-
-    // allowFreeMints: false,
-    // enableWhitelist: true,
-    // enablePresale: true,
-    // enableAirdrop: false,
-    //check true condition if those condition is true then add to the array step count and then setFinalizeSteps
-    const steps = [];
-    if (data.enablePresale) {
-      steps.push("Enable Presale");
-    }
-    if (data.enableWhitelist) {
-      steps.push("Enable Whitelist");
-    }
-    if (data.enableAirdrop) {
-      steps.push("Enable Airdrop");
-    }
-    if (data.allowFreeMints) {
-      steps.push("Allow Free Mints");
-    }
-
-    console.log("🚀 ~ handleFinalizeModalOpen ~ steps", steps);
-    setFinalizeSteps(steps);
-    setActiveFinalizeStep(0);
-
-    setFinalizeModalOpen(true);
-  };
-  console.log("🚀 ~ TopSellingTable ~ finaliiizeSteps", finaliiizeSteps);
-
-  const handleFinalizeModalClose = () => {
-    setFinalizeModalOpen(false);
-    setId("");
-    setActiveFinalizeStep(0);
-    setFinalizeSteps([]);
-  };
-
-  const handleRejectModalClose = () => {
-    setRejectModalOpen(false);
-    setId("");
   };
 
   const handleNext = () =>
@@ -319,76 +160,9 @@ export default function TopSellingTable(props) {
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
   console.log("🚀 ~ onAccept ~ selectedRow", selectedRow);
 
-  const onAccept = async (id) => {
-    console.log("🚀 ~ onAccept ~ id", id);
-    console.log("🚀 ~ onAccept ~ selectedRow", selectedRow);
-    console.log("🚀 ~ onAccept ~ selectedRow", selectedRow.collectionName);
-    try {
-      const result = await createNgCollection({
-        collectionName: selectedRow.collectionName,
-        wallet:
-          user?.walletName === "Ecko Wallet"
-            ? "ecko"
-            : user?.walletName === "Chainweaver"
-            ? "CW"
-            : user?.walletName,
-      });
-      console.log("🚀 ~ onAccept ~ result", result);
-      if (result.data.result.status === "success") {
-        console.log("Collection launched successfully", result);
-        launchapadServices
-          .launchLaunchpad(id)
-          .then((response) => {
-            console.log(response);
 
-            if (response.data.isApproved) {
-              const data = {
-                collectionName: response.data.collectionName,
-                applicationType: "launchpad",
-              };
-
-              collectionServices
-                .createCollection(data)
-                .then((response) => {
-                  console.log(response);
-                  props.setRefresh(!props.refresh);
-                  handleAcceptModalClose();
-                })
-                .catch((error) => {
-                  console.log(error);
-                });
-            } else {
-              console.log("🚀 ~ onAccept ~ response", response);
-            }
-          })
-          .catch((error) => {
-            console.log(error);
-          });
-      } else if (result.error) {
-        console.error("Error launching collection", result.error);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const onReject = (id) => {
-    console.log("🚀 ~ onReject ~ id", id);
-    launchapadServices
-      .rejectLaunchpad(id)
-      .then((response) => {
-        console.log(response);
-        props.setRefresh(!props.refresh);
-        handleRejectModalClose();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
-
+ 
   const onClickRow = (id) => {
-    console.log("🚀 ~ onClickRow ~ id", id);
-    //getById
     paymentServices
       .getById(id)
       .then((response) => {
@@ -400,9 +174,6 @@ export default function TopSellingTable(props) {
       });
   };
 
-  console.log("🚀 ~ TopSellingTable ~ transactionData", transactionData);
-
-  console.log("user?.role", user?.role === "superadmin");
   const renderStage1Form = () => (
     <Box component="form" sx={{ mt: 3 }}>
       <Grid container spacing={2}>
@@ -705,514 +476,6 @@ export default function TopSellingTable(props) {
     </div>
   );
 
-  const handlePreSaleSubmit = async (data) => {
-    console.log("🚀 ~ handlePreSaleSubmit ~ presaleData", data);
-
-    const presaleStartDateNew = moment(data.startDateAndTime).format(
-      "YYYY-MM-DD"
-    );
-    const presaleStartTimeNew = moment(data.startDateAndTime).format("HH:mm");
-    const presaleEndDateNew = moment(data.endDateAndTime).format("YYYY-MM-DD");
-    const presaleEndTimeNew = moment(data.endDateAndTime).format("HH:mm");
-
-    const presaleStartTime = moment(
-      `${presaleStartDateNew} ${presaleStartTimeNew}`
-    ).format("YYYY-MM-DDTHH:mm:ss");
-    const formattedStartDate = `time "${presaleStartTime}Z"`;
-    console.log("formattedDate", formattedStartDate);
-
-    const presaleEndTime = moment(
-      `${presaleEndDateNew} ${presaleEndTimeNew}`
-    ).format("YYYY-MM-DDTHH:mm:ss");
-    const formattedEndDate = `time "${presaleEndTime}Z"`;
-    console.log("formattedEndDate", formattedEndDate);
-
-
-    const kaddress = data.presaleAddress.split(",");
-    const kaddress1 = kaddress.map((address) => `'${address}'`);
-    const kaddress2 = kaddress1.join(",");
-    console.log("🚀 ~ handlePreSaleSubmit ~ kaddress2", kaddress2);
-
-//     const mintPriceNew = parseFloat(data.presaleMintPrice).toFixed(2);
-//     console.log("🚀 ~ handlePreSaleSubmit ~ mintPriceNew", mintPriceNew);
-//     return;
-
-    try {
-      const result = await createPresale({
-        createPresaleCol: selectedRow.collectionName,
-        createPresalePrice: parseFloat(data.presaleMintPrice).toFixed(2),
-        createPresaleStartDate: presaleStartDateNew,
-        createPresaleStartTime: formattedStartDate,
-        createPresaleEndDate: presaleEndDateNew,
-        createPresaleEndTime: formattedEndDate,
-        createPresaleAdd: kaddress2,
-        wallet:
-          user?.walletName === "Ecko Wallet"
-            ? "ecko"
-            : user?.walletName === "Chainweaver"
-            ? "CW"
-            : user?.walletName,
-      });
-
-      console.log("🚀 ~ handlePreSaleSubmit ~ result", result);
-      if (result.data.result.status === "success") {
-        const body = {
-          presaleStartDate: presaleStartDateNew,
-          presaleStartTime: presaleStartTimeNew,
-          presaleEndDate: presaleEndDateNew,
-          presaleEndTime: presaleEndTimeNew,
-          presalePrice: parseFloat(data.presaleMintPrice).toFixed(2),
-          presaleAddressess: kaddress,
-        };
-
-        console.log("🚀 ~ handleSubmit ~ body", body);
-        const response = await collectionServices.updateCollection(
-          body,
-          selectedRow.collectionName
-        );
-        console.log("🚀 ~ handleSubmit ~ response", response);
-        if (response?.data?.status === "success") {
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: "Presale created successfully",
-          });
-          setFinalizeModalOpen(false);
-        } else {
-          console.error("Error creating presale", response.error);
-        }
-
-        // Swal.fire({
-        //   icon: "success",
-        //   title: "Success",
-        //   text: "Presale created successfully",
-        // });
-        // setFinalizeModalOpen(false);
-      } else if (result.error) {
-        console.error("Error creating presale", result.error);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-
-    // presaleStartDate: { type: String },
-    // presaleStartTime: { type: String },
-    // presaleEndDate: { type: String },
-    // presaleEndTime: { type: String },
-    // presalePrice: { type: String },
-    // presaleAddressess: { type: [String] },
-  };
-
-  // const handleWhitelistSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log("🚀 ~ handleWhitelistSubmit ~ whitelistData", whitelistData);
-
-  //   const today = moment().format("YYYY-MM-DD");
-  //   const presaleStartTime = moment(
-  //     `${today} ${presaleData.presaleStartTime}`
-  //   ).format("YYYY-MM-DDTHH:mm:ss");
-  //   const formattedStartDate = `time "${presaleStartTime}Z"`;
-  //   console.log("formattedDate", formattedStartDate);
-
-  //   try {
-  //     const result = await createWl({
-  //       createWlCol: selectedRow.collectionName,
-  //       createWlAdd: whitelistData.createWlAdd,
-  //       createWlPrice: parseFloat(whitelistData.createWlPrice),
-  //       createWlStartTime: formattedStartDate,
-  //       wallet:
-  //         user?.walletName === "Ecko Wallet"
-  //           ? "ecko"
-  //           : user?.walletName === "Chainweaver"
-  //           ? "CW"
-  //           : user?.walletName,
-  //     });
-
-  //     console.log("🚀 ~ handleWhitelistSubmit ~ result", result);
-  //     if (result.data.result.status === "success") {
-  //       Swal.fire({
-  //         icon: "success",
-  //         title: "Success",
-  //         text: "Whitelist created successfully",
-  //       });
-  //       setFinalizeModalOpen(false);
-  //     } else if (result.error) {
-  //       console.error("Error creating whitelist", result.error);
-  //     }
-  //   } catch (error) {
-  //     console.error("Error:", error);
-  //   }
-  // };
-
-
-  const handleWhitelistSubmit = async (data) => {
-    console.log("🚀 ~ handleWhitelistSubmit ~ data", data);
-  
-    const whitelistStartTime = moment(data.createWlStartTime).format("YYYY-MM-DDTHH:mm:ss");
-    const formattedStartDate = `time "${whitelistStartTime}Z"`;
-    console.log("formattedDate", formattedStartDate);
-  
-    try {
-      const result = await createWl({
-        createWlCol: selectedRow.collectionName,
-        createWlAdd: data.createWlAdd,
-        createWlPrice: parseFloat(data.createWlPrice).toFixed(2),
-        createWlStartTime: formattedStartDate,
-        wallet:
-          user?.walletName === "Ecko Wallet"
-            ? "ecko"
-            : user?.walletName === "Chainweaver"
-            ? "CW"
-            : user?.walletName,
-      });
-  
-      console.log("🚀 ~ handleWhitelistSubmit ~ result", result);
-      if (result.data.result.status === "success") {
-        const body = {
-          whitelistAddresses: data.createWlAdd,
-          whitelistStartDate: moment(data.createWlStartTime).format("YYYY-MM-DD"),
-          whitelistStartTime: moment(data.createWlStartTime).format("HH:mm"),
-          whitelistPrice: parseFloat(data.createWlPrice).toFixed(2),
-        };
-
-        console.log("🚀 ~ handleSubmit ~ body", body);
-        const response = await collectionServices.updateCollection(
-          body,
-          selectedRow.collectionName
-        );
-        console.log("🚀 ~ handleSubmit ~ response", response);
-
-        if (response?.data?.status === "success") {
-          Swal.fire({
-            icon: "success",
-            title: "Success",
-            text: "Whitelist created successfully",
-          });
-          setFinalizeModalOpen(false);
-        }
-      } else if (result.error) {
-        console.error("Error creating whitelist", result.error);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  const onPresaleSubmit = (data) => {
-    console.log("Presale data:", data);
-    handlePreSaleSubmit(data);
-  };
-
-  const onWhitelistSubmit = (data) => {
-    console.log("Whitelist data:", data);
-    handleWhitelistSubmit(data);
-  };
-
-  // const PreSaleForm = () => (
-  //   <form onSubmit={presaleForm.handleSubmit(onPresaleSubmit)}>
-  //     <LocalizationProvider dateAdapter={AdapterDayjs}>
-  //       <Stack spacing={3}>
-  //         <Controller
-  //           name="startDateAndTime"
-  //           control={presaleForm.control}
-  //           render={({ field }) => (
-  //             <DateTimePicker
-  //               {...field}
-  //               label="Presale Start Date"
-  //               renderInput={(props) => <TextField {...props} />}
-  //             />
-  //           )}
-  //         />
-  //         <Controller
-  //           name="endDateAndTime"
-  //           control={presaleForm.control}
-  //           render={({ field }) => (
-  //             <DateTimePicker
-  //               {...field}
-  //               label="Presale End Date"
-  //               renderInput={(props) => <TextField {...props} />}
-  //             />
-  //           )}
-  //         />
-  //       </Stack>
-  //     </LocalizationProvider>
-
-  //     <Controller
-  //       name="presaleMintPrice"
-  //       control={presaleForm.control}
-  //       rules={{
-  //         validate: (value) => value >= 0 || "Negative values are not allowed",
-  //       }}
-  //       render={({ field }) => (
-  //         <TextField
-  //           {...field}
-  //           label="Presale Mint Price"
-  //           type="number"
-  //           fullWidth
-  //           margin="normal"
-  //           error={!!presaleForm.formState.errors.presaleMintPrice}
-  //           helperText={presaleForm.formState.errors.presaleMintPrice?.message}
-  //         />
-  //       )}
-  //     />
-
-  //     <Controller
-  //       name="presaleAddress"
-  //       control={presaleForm.control}
-  //       rules={{
-  //         pattern: {
-  //           value: /^(k:[a-zA-Z0-9]+,?)+$/,
-  //           message: "Invalid address format. Use 'k:address1,k:address2'",
-  //         },
-  //       }}
-  //       render={({ field }) => (
-  //         <TextField
-  //           {...field}
-  //           label="Presale Address"
-  //           fullWidth
-  //           margin="normal"
-  //           error={!!presaleForm.formState.errors.presaleAddress}
-  //           helperText={presaleForm.formState.errors.presaleAddress?.message}
-  //         />
-  //       )}
-  //     />
-
-  //     <Button onClick={handleFinalizeModalClose}>Close</Button>
-  //     <Button type="submit">Submit</Button>
-  //   </form>
-  // );
-
-
-  const PreSaleForm = () => {
-    const {
-      control,
-      handleSubmit,
-      formState: { errors },
-    } = presaleForm;
-  
-    return (
-      <form onSubmit={handleSubmit(onPresaleSubmit)}>
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <Stack spacing={3}>
-            <Controller
-              name="startDateAndTime"
-              control={control}
-              render={({ field }) => (
-                <DateTimePicker
-                  {...field}
-                  label="Presale Start Date"
-                  renderInput={(props) => (
-                    <TextField
-                      {...props}
-                      error={!!errors.startDateAndTime}
-                      helperText={errors.startDateAndTime?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-            <Controller
-              name="endDateAndTime"
-              control={control}
-              render={({ field }) => (
-                <DateTimePicker
-                  {...field}
-                  label="Presale End Date"
-                  renderInput={(props) => (
-                    <TextField
-                      {...props}
-                      error={!!errors.endDateAndTime}
-                      helperText={errors.endDateAndTime?.message}
-                    />
-                  )}
-                />
-              )}
-            />
-          </Stack>
-        </LocalizationProvider>
-  
-        <Controller
-          name="presaleMintPrice"
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              label="Presale Mint Price"
-              type="number"
-              fullWidth
-              margin="normal"
-              error={!!errors.presaleMintPrice}
-              helperText={errors.presaleMintPrice?.message}
-            />
-          )}
-        />
-  
-        <Controller
-          name="presaleAddress"
-          control={control}
-          render={({ field }) => (
-            <TextField
-              {...field}
-              label="Presale Address"
-              fullWidth
-              margin="normal"
-              error={!!errors.presaleAddress}
-              helperText={errors.presaleAddress?.message}
-            />
-          )}
-        />
-  
-        <Button onClick={handleFinalizeModalClose}>Close</Button>
-        <Button type="submit">Submit</Button>
-      </form>
-    );
-  };
-
-
-
-
-
-  // const WhitelistForm = () => (
-  //   <form onSubmit={whitelistForm.handleSubmit(onWhitelistSubmit)}>
-  //     <TextField
-  //       label="Create Whitelist Collection"
-  //       name="createWlCol"
-  //       fullWidth
-  //       margin="normal"
-  //       value={selectedRow.collectionName}
-  //       disabled={true}
-  //     />
-
-  //     <Controller
-  //       name="createWlAdd"
-  //       control={whitelistForm.control}
-  //       render={({ field }) => (
-  //         <TextField
-  //           {...field}
-  //           label="Create Whitelist Address"
-  //           fullWidth
-  //           margin="normal"
-  //           error={!!whitelistForm.formState.errors.createWlAdd}
-  //           helperText={whitelistForm.formState.errors.createWlAdd?.message}
-  //         />
-  //       )}
-  //     />
-
-  //     <Controller
-  //       name="createWlPrice"
-  //       control={whitelistForm.control}
-  //       render={({ field }) => (
-  //         <TextField
-  //           {...field}
-  //           label="Create Whitelist Price"
-  //           fullWidth
-  //           margin="normal"
-  //           error={!!whitelistForm.formState.errors.createWlPrice}
-  //           helperText={whitelistForm.formState.errors.createWlPrice?.message}
-  //         />
-  //       )}
-  //     />
-
-  //     <Controller
-  //       name="createWlStartTime"
-  //       control={whitelistForm.control}
-  //       render={({ field }) => (
-  //         <TextField
-  //           {...field}
-  //           label="Create Whitelist Start Time"
-  //           type="time"
-  //           fullWidth
-  //           margin="normal"
-  //           error={!!whitelistForm.formState.errors.createWlStartTime}
-  //           helperText={
-  //             whitelistForm.formState.errors.createWlStartTime?.message
-  //           }
-  //         />
-  //       )}
-  //     />
-
-  //     <Button onClick={handleFinalizeModalClose}>Close</Button>
-  //     <Button type="submit">Submit</Button>
-  //   </form>
-  // );
-
-
-const WhitelistForm = () => {
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-  } = whitelistForm;
-
-  return (
-    <form onSubmit={handleSubmit(onWhitelistSubmit)}>
-      <TextField
-        label="Collection Name"
-        name="createWlCol"
-        fullWidth
-        margin="normal"
-        value={selectedRow.collectionName}
-        disabled={true}
-      />
-
-      <Controller
-        name="createWlAdd"
-        control={control}
-        render={({ field }) => (
-          <TextField
-            {...field}
-            label="Whitelist Addresses"
-            fullWidth
-            margin="normal"
-            error={!!errors.createWlAdd}
-            helperText={errors.createWlAdd?.message}
-          />
-        )}
-      />
-
-      <Controller
-        name="createWlPrice"
-        control={control}
-        render={({ field }) => (
-          <TextField
-            {...field}
-            label="Whitelist Price"
-            fullWidth
-            margin="normal"
-            error={!!errors.createWlPrice}
-            helperText={errors.createWlPrice?.message}
-          />
-        )}
-      />
-
-      <LocalizationProvider dateAdapter={AdapterDayjs}>
-        <Controller
-          name="createWlStartTime"
-          control={control}
-          render={({ field }) => (
-            <DateTimePicker
-              {...field}
-              label="Whitelist Start Time"
-              renderInput={(params) => (
-                <TextField
-                  {...params}
-                  fullWidth
-                  margin="normal"
-                  error={!!errors.createWlStartTime}
-                  helperText={errors.createWlStartTime?.message}
-                />
-              )}
-            />
-          )}
-        />
-      </LocalizationProvider>
-
-      <Button onClick={handleFinalizeModalClose}>Close</Button>
-      <Button type="submit">Submit</Button>
-    </form>
-  );
-};
-
 
   return (
     <>
@@ -1263,11 +526,6 @@ const WhitelistForm = () => {
                   <TableCell colSpan={1} sx={{ px: 0 }}>
                     View
                   </TableCell>
-
-                  {/* <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Action
-                  </TableCell> */}
-                  {/* {user?.role === "superadmin" && ( */}
                   <TableCell colSpan={2} sx={{ px: 0 }}>
                     Action
                   </TableCell>
@@ -1276,45 +534,8 @@ const WhitelistForm = () => {
               </TableHead>
 
               <TableBody>
-                {/* {nftsList.map((nft, index) => (
-              <TableRow key={index} hover>
-                <TableCell colSpan={4} align="left" sx={{ px: 0, textTransform: "capitalize" }}>
-                  <Box display="flex" alignItems="center" gap={4}>
-                    <Avatar src={nft.imgUrl} />
-                    <Paragraph>{nft.name}</Paragraph>
-                  </Box>
-                </TableCell>
-
-                <TableCell align="left" colSpan={2} sx={{ px: 0, textTransform: "capitalize" }}>
-                  ${nft.price > 999 ? (nft.price / 1000).toFixed(1) + "k" : nft.price}
-                </TableCell>
-
-                <TableCell sx={{ px: 0 }} align="left" colSpan={2}>
-                  {product.available ? (
-                    product.available < 20 ? (
-                      <Small bgcolor={bgSecondary}>{product.available} available</Small>
-                    ) : (
-                      <Small bgcolor={bgPrimary}>in stock</Small>
-                    )
-                  ) : (
-                    <Small bgcolor={bgError}>out of stock</Small>
-                  )}
-                </TableCell>
-                <TableCell align="left" colSpan={2} sx={{ px: 0 }}>
-                  {nft.available}
-                </TableCell>
-
-                <TableCell sx={{ px: 0 }} colSpan={1}>
-                  <IconButton>
-                    <Edit color="primary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))} */}
-
                 {props?.data?.map(
                   (product, index) => (
-                    console.log("🚀 ~ TopSellingTable ~ product", product),
                     (
                       <TableRow
                         key={index}
@@ -1366,50 +587,11 @@ const WhitelistForm = () => {
                           </IconButton>
                         </TableCell>
                         {console.log("🚀 ~ TopSellingTable ~ product", product)}
-                        {product?.isLaunched === false ? (
+                       
                           <TableCell colSpan={2} sx={{ px: 0 }}>
-                            <IconButton
-                              onClick={() => {
-                                setId(product._id);
-                                setSelectedRow(product);
-                                handleAcceptModalOpen();
-                              }}
-                            >
-                              <Done color="primary" />
-                            </IconButton>
-                          </TableCell>
-                        ) : (
-                          <TableCell colSpan={2} sx={{ px: 0 }}>
-                            {/* <IconButton
-                              onClick={() => {
-                                setId(product._id);
-                                setSelectedRow(product);
-                                handleRejectModalOpen();
-                              }}
-                            >
-                              <Close color="error" />
-                            </IconButton> */}
-                            {/* <Button
-                              onClick={() => {
-                                setId(product._id);
-                                setSelectedRow(product);
-                                handleFinalizeModalOpen(product);
-                              }}
-                              variant="contained"
-                              color="success"
-                            >
-                              <span style={{ fontSize: 10 }}>
-                                Click to Finish
-                              </span>
-                            </Button> */}
-                            {/* mintStartDate: 'time "2024-07-21T23:48:00Z"',
-mintStartTime: 'time "2024-07-21T23:48:00Z"', */}
-
-                            {product?.mintStartDate
-                              .split(" ")[1]
-                              .split('"')[1] >
-                            moment().format("YYYY-MM-DDTHH:mm:ss") ? (
-                              // <span style={{ color: "red" }}>Minting not started</span>
+                            {/* {moment(product.mintStartDate).format(
+                              "YYYY-MM-DDTHH:mm:ss"
+                            ) > moment().format("YYYY-MM-DDTHH:mm:ss") ? (
                               <Button
                                 onClick={() => {
                                   setId(product._id);
@@ -1427,9 +609,24 @@ mintStartTime: 'time "2024-07-21T23:48:00Z"', */}
                               <span style={{ color: "green" }}>
                                 Minting started
                               </span>
-                            )}
+                            )} */}
+
+                            <Button
+                              onClick={() => {
+                                dispatch(setSelection(product));
+                                navigate(
+                                  "/admin/launchpad/apply-launchpad/action-page"
+                                );
+                              }}
+                              variant="contained"
+                              color="success"
+                            >
+                              <span style={{ fontSize: 10 }}>
+                                Launch Action
+                              </span>
+                            </Button>
                           </TableCell>
-                        )}
+                        
                       </TableRow>
                     )
                   )
@@ -1471,238 +668,6 @@ mintStartTime: 'time "2024-07-21T23:48:00Z"', */}
           {activeStep === 0 ? renderStage1Form() : renderStage2Form()}
         </Box>
       </Modal>
-
-      <Modal open={acceptModalOpen} onClose={handleAcceptModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography
-            sx={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}
-          >
-            Are you sure you want to accept?
-          </Typography>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              onClick={
-                // handleAcceptModalClose
-                () => {
-                  onAccept(id);
-                }
-              }
-              sx={{ float: "right", margin: "10px" }}
-            >
-              Yes
-            </Button>
-
-            <Button
-              onClick={handleAcceptModalClose}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              No
-            </Button>
-          </div>
-        </Box>
-      </Modal>
-
-      <Modal open={rejectModalOpen} onClose={handleRejectModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography
-            sx={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}
-          >
-            Are you sure you want to reject?
-          </Typography>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              onClick={() => onReject(id)}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              Yes
-            </Button>
-            <Button
-              onClick={handleRejectModalClose}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              No
-            </Button>
-          </div>
-        </Box>
-      </Modal>
-
-      {/* modal make */}
-
-      {/* <Modal open={finalizeModalOpen} onClose={handleFinalizeModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          {console.log("🚀 ~ handleFinalizeModalOpen ~ finaliiizeSteps", finaliiizeSteps)}
-          <AppBar position="static">
-            <Tabs
-              value={finaliiizeSteps}
-              onChange={(e, newValue) => {console.log("🚀 ~ onChange ~ newValue", newValue); setActiveFinalizeStep(newValue)}}
-              indicatorColor="secondary"
-          textColor="inherit"
-          variant="fullWidth"
-          aria-label="full width tabs example"
-            >
-               {finaliiizeSteps.map((step, index) => (
-                <Tab key={index} label={step} {...a11yProps(index)} />
-              ))}
-            </Tabs>
-          </AppBar>
-
-          {finaliiizeSteps.map((step, index) => (
-            <TabPanel key={index} value={activeFinalizeStep} index={index} dir={palette.direction}>
-              <Typography>{step}</Typography>
-            </TabPanel>
-          ))}
-
-             
-        </Box>
-      </Modal> */}
-      {/* <Modal open={finalizeModalOpen} onClose={handleFinalizeModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <AppBar position="static">
-            <Tabs
-              value={activeFinalizeStep}
-              onChange={(e, newValue) => setActiveFinalizeStep(newValue)}
-              indicatorColor="secondary"
-              textColor="inherit"
-              variant="fullWidth"
-              aria-label="full width tabs example"
-            >
-              {finaliiizeSteps.map((step, index) => (
-                <Tab key={index} label={step} {...a11yProps(index)} />
-              ))}
-            </Tabs>
-          </AppBar>
-
-          {finaliiizeSteps.map((step, index) => (
-            <TabPanel key={index} value={activeFinalizeStep} index={index}>
-              {step === "Enable Presale" && preSaleForm()}
-              {step === "Enable Whitelist" && whitelistForm()}
-            </TabPanel>
-          ))}
-        </Box>
-      </Modal> */}
-      <Modal open={finalizeModalOpen} onClose={handleFinalizeModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <AppBar position="static">
-            <Tabs
-              value={activeFinalizeStep}
-              onChange={(e, newValue) => setActiveFinalizeStep(newValue)}
-              indicatorColor="secondary"
-              textColor="inherit"
-              variant="fullWidth"
-              aria-label="full width tabs example"
-            >
-              {finaliiizeSteps.map((step, index) => (
-                <Tab key={index} label={step} {...a11yProps(index)} />
-              ))}
-            </Tabs>
-          </AppBar>
-
-          {finaliiizeSteps.map((step, index) => (
-            <TabPanel key={index} value={activeFinalizeStep} index={index}>
-              {step === "Enable Presale" && <PreSaleForm />}
-              {step === "Enable Whitelist" && <WhitelistForm />}
-            </TabPanel>
-          ))}
-        </Box>
-      </Modal>
     </>
   );
 }
-
-const nftsList = [
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 1",
-    price: 100,
-    available: 15,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 2",
-    price: 1500,
-    available: 30,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 3",
-    price: 1900,
-    available: 35,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 4",
-    price: 100,
-    available: 0,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 5",
-    price: 1190,
-    available: 5,
-  },
-];

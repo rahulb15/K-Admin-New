@@ -27,6 +27,7 @@ const ApplyLaunchpadAdmin = Loadable(lazy(() => import("app/views/super-admin/la
 
 // Admin Pages
 const ApplyLaunchpad = Loadable(lazy(() => import("app/views/admin/launchpad/apply-launchpad/ApplyLaunchpad")));
+const ActionPage = Loadable(lazy(() => import("app/views/admin/launchpad/apply-launchpad/shared/ActionPage")));
 
 const routes = [
   {
@@ -50,6 +51,7 @@ const routes = [
       
       // Admin Routes
       { path: "/admin/launchpad/apply-launchpad", element: <ApplyLaunchpad />, auth: authRoles.admin },
+      { path: "/admin/launchpad/apply-launchpad/action-page", element: <ActionPage />, auth: authRoles.admin },
     ],
   },
   { path: "/session/404", element: <NotFound /> },
