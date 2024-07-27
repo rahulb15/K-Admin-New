@@ -2,3 +2,4 @@ node_modules
 DockerFile
 .git
 package-lock.json
+build
