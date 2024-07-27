@@ -179,7 +179,7 @@ const PreSaleForm = (props) => {
             title: "Success",
             text: "Presale created successfully",
           });
-          setFinalizeModalOpen(false);
+          // setFinalizeModalOpen(false);
         } else {
           console.error("Error creating presale", response.error);
         }
