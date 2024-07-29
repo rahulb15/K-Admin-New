@@ -82,3 +82,19 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/kryptomerchadmin:latest
+          build-args: |
+            REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
+            REACT_APP_PROJECT_ID=${{ secrets.REACT_APP_PROJECT_ID }}
+            REACT_APP_RELAY_URL=${{ secrets.REACT_APP_RELAY_URL }}
+            REACT_APP_KDA_NETWORK_TYPE=${{ secrets.REACT_APP_KDA_NETWORK_TYPE }}
+            REACT_APP_KDA_CHAIN_ID=${{ secrets.REACT_APP_KDA_CHAIN_ID }}
+            REACT_APP_KDA_GAS_PRICE=${{ secrets.REACT_APP_KDA_GAS_PRICE }}
+            REACT_APP_KDA_GAS_LIMIT=${{ secrets.REACT_APP_KDA_GAS_LIMIT }}
+            REACT_APP_KDA_PRECISION=${{ secrets.REACT_APP_KDA_PRECISION }}
+            REACT_APP_KDA_NETWORK_ID=${{ secrets.REACT_APP_KDA_NETWORK_ID }}
+            REACT_APP_KDA_FEE=${{ secrets.REACT_APP_KDA_FEE }}
+            REACT_APP_APR_FEE=${{ secrets.REACT_APP_APR_FEE }}
+            REACT_APP_KDA_NETWORK=${{ secrets.REACT_APP_KDA_NETWORK }}
+            REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL }}
+            REACT_APP_ZELCORE_URL=${{ secrets.REACT_APP_ZELCORE_URL }}
+            REACT_APP_STRIPE_PUBLISHABLE_KEY=${{ secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
