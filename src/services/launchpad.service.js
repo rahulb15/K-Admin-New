@@ -57,7 +57,9 @@ const getColCreator = async (colName) => {
 };
 
 const collectionId = async (colNameId) => {
-  const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(colNameId)})`;
+  const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(
+    colNameId
+  )})`;
 
   const transaction = Pact.builder
     .execution(pactCode)
@@ -583,7 +585,7 @@ export const launchpadApi = createApi({
     syncWithNg: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery) {
         const { syncColName, syncTkns, wallet } = args;
-        console.log("args", args); 
+        console.log("args", args);
         // const colId = await api
         //   .dispatch(
         //     launchpadApi.endpoints.collectionId.initiate({
@@ -598,6 +600,8 @@ export const launchpadApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
         const formattedSyncTkns = `[${syncTkns}]`;
+
+        // '(free.lptest001.bulk-sync-with-ng "monkeyaz9" [1 2])'
 
 
         const pactCode = `(free.lptest001.bulk-sync-with-ng ${JSON.stringify(
@@ -631,6 +635,86 @@ export const launchpadApi = createApi({
 
           console.log("response", localResponse.result.data);
 
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+    balance: builder.mutation({
+      async queryFn(args) {
+        try {
+          const { account } = args;
+          console.log("account", account);
+    
+          const pactCode = `(coin.get-balance (read-string "account"))`;
+          const transaction = Pact.builder
+            .execution(pactCode)
+            .setMeta({ chainId: "1" })
+            .addData("account", account)
+            .setNetworkId(NETWORKID)
+            .createTransaction();
+    
+          const staticClient = createClient(API_HOST);
+    
+          const response = await staticClient.local(transaction, {
+            preflight: false,
+            signatureVerification: false,
+          });
+    
+          console.log(response);
+          return { data: response.result.data }; 
+        } catch (error) {
+          return { error: error.toString() };
+        }
+      },
+    }),
+
+    transfer: builder.mutation({
+      async queryFn(args) {
+        const { receiver, amount, wallet } = args;
+        console.log("receiver", receiver);
+        console.log("amount", amount);
+        const sender = admin;
+        const receiverKey = receiver.slice(2, receiver.length);
+        const senderKey = sender.slice(2, receiver.length);
+        const guard = { keys: [receiverKey], pred: "keys-all" };
+
+        const pactCode = `(coin.transfer-create (read-string "sender") (read-string "receiver") (read-keyset "guard") ${parseFloat(
+          amount
+        ).toFixed(1)})`;
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addData("sender", admin)
+          .addData("receiver", receiver)
+          .addSigner(senderKey, (withCapability) => [
+            withCapability("coin.GAS"),
+            withCapability("coin.TRANSFER", sender, receiver, amount),
+          ])
+          .setMeta({ chainId: "1", sender })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("transaction", txn);
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
 
           if (localResponse.result.status === "success") {
             let signedTx;
@@ -663,4 +747,6 @@ export const {
   useCreateAirdropMutation,
   useUnrevealedTokensMutation,
   useSyncWithNgMutation,
+  useBalanceMutation,
+  useTransferMutation,
 } = launchpadApi;

@@ -99,9 +99,35 @@ const getAllTransactions = async ( page: number, limit: number, search: string) 
   }
 };
 
+
+const approveDeposit = async (id: string, address: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${url}/transaction/approveDeposit`,
+      {
+        id: id,
+        address: address,
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+}
+
+
+
 export default {
   getAll,
   getById,
   get,
   getAllTransactions,
+  approveDeposit
 };

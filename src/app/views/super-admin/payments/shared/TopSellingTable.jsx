@@ -38,6 +38,7 @@ import useAuth from "app/hooks/useAuth";
 import moment from "moment";
 import ContentCopyIcon from "@mui/icons-material/ContentCopy";
 import Swal from "sweetalert2";
+import { useTransferMutation } from "services/launchpad.service";
 
 // STYLED COMPONENTS
 const CardHeader = styled(Box)(() => ({
@@ -89,6 +90,9 @@ export default function TopSellingTable(props) {
   const bgSecondary = palette.secondary.main;
   const [transactionData, setTransactionData] = useState({});
   const [open, setOpen] = useState(false);
+  const [transfer] = useTransferMutation();
+
+  
 
   const onClickRow = (id) => {
     console.log("🚀 ~ onClickRow ~ id", id);
@@ -117,6 +121,170 @@ export default function TopSellingTable(props) {
       timer: 1500,
     });
   };
+
+  const submitDepsit = (row) => {
+    console.log("row", row);
+
+    //swal have inputfield in which prefilled selected address and amount so that it is just confirmation to approve then call approve api
+    Swal.fire({
+      title: "Submit Deposit",
+      html: `<div>
+      <p>Address: ${row?.address}</p>
+      <p>Amount: ${row?.amount}</p>
+      </div>`,
+      input: "text",
+      inputAttributes: {
+        autocapitalize: "off",
+      },
+      inputPlaceholder: "Type 'confirm' to proceed",
+      showCancelButton: true,
+      confirmButtonText: "Submit",
+      showLoaderOnConfirm: true,
+      preConfirm: (input) => {
+        if (input.toLowerCase() !== "confirm") {
+          Swal.showValidationMessage('Please type "confirm" to proceed');
+          return false;
+        }
+
+        // return paymentServices
+        //   .approveDeposit(row._id, row?.address)
+        //   .then((response) => {
+        //     console.log(response);
+        //     props?.setRefresh(!props?.refresh);
+        //     Swal.fire({
+        //       icon: "success",
+        //       title: "Success",
+        //       text: "Deposit Approved",
+        //       showConfirmButton: false,
+        //       timer: 1500,
+        //     });
+        //   })
+        //   .catch((error) => {
+        //     console.log(error);
+        //     Swal.fire({
+        //       icon: "error",
+        //       title: "Error",
+        //       text: "Deposit Approval Failed",
+        //       showConfirmButton: false,
+        //       timer: 1500,
+        //     });
+        //     throw error;
+        //   });
+
+        // transfer: builder.mutation({
+        //   async queryFn(args) {
+        //     const { receiver, amount, wallet } = args;
+
+        return transfer({
+          receiver: row?.address,
+          amount: row?.amount,
+          // wallet: user?.walletName === "Ecko Wallet" ? "ecko" : "CW",
+          wallet: "CW",
+        }).then((response) => {
+          console.log("response", response);
+          if (response.error) {
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Deposit Approval Failed",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+            return;
+          }
+
+
+          // {
+          //   data: {
+          //     gas: 724,
+          //     result: { status: 'success', data: 'Write succeeded' },
+          //     reqKey: 'xM-SjAeMunIPjrrccI1xe-V5zu3QJvwLwrHYWreIO0U',
+          //     logs: 'IXgrFD9Czp9Vk4J4-JBDq0NiP6RXnyu9cwIhS69mrok',
+          //     events: [
+          //       {
+          //         params: [
+          //           'k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf', 'k:db776793be0fcf8e76c75bdb35a36e67f298111dc6145c66693b0133192e2616',
+          //           0.00000724
+          //         ],
+          //         name: 'TRANSFER',
+          //         module: { namespace: null, name: 'coin' },
+          //         moduleHash: 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s'
+          //       },
+          //       {
+          //         params: [
+          //           'k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf', 'k:d1d47937b0ec42efa859048d0fb5f51707639ddad991e58ae9efcff5f4ff9dbe',
+          //           22
+          //         ],
+          //         name: 'TRANSFER',
+          //         module: { namespace: null, name: 'coin' },
+          //         moduleHash: 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s'
+          //       }
+          //     ],
+          //     metaData: {
+          //       blockTime: 1722327239698034,
+          //       prevBlockHash: 'Q-u18MpY_1fQpmer_8mMA2uSjoORSnyGNn17OEYTr7o',
+          //       blockHash: '6Ftw1NdTvK4QUz5PewWMhaBuKJH7ggZctP2bb3Igfm4',
+          //       blockHeight: 4511285
+          //     },
+          //     continuation: null,
+          //     txId: 6314143
+          //   }
+          // }
+
+          paymentServices
+          .approveDeposit(row.transaction._id, row?.address)
+          .then((response) => {
+            console.log(response);
+            Swal.fire({
+              icon: "success",
+              title: "Success",
+              text: "Deposit Approved",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+
+          })
+          .catch((error) => {
+            console.log(error);
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Deposit Approval Failed",
+              showConfirmButton: false,
+              timer: 1500,
+            });
+            throw error;
+          });
+
+
+
+
+
+        }
+        ).catch((error) => {
+          console.log(error);
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Deposit Approval Failed",
+            showConfirmButton: false,
+            timer: 1500,
+          });
+          throw error;
+        });
+        
+
+
+
+
+
+
+
+      },
+      allowOutsideClick: () => !Swal.isLoading(),
+    });
+  };
+
   return (
     <>
       <Grid item lg={8} md={8} sm={12} xs={12}>
@@ -216,10 +384,10 @@ export default function TopSellingTable(props) {
                       </Small>
                     </TableCell>
                     <TableCell>
-                      <Button
+                      {/* <Button
                         onClick={() => {
                           // onClickRow(row._id);
-                          setOpen(true);
+                          submitDepsit(row);
                         }}
                         variant="contained"
                         color="primary"
@@ -227,7 +395,34 @@ export default function TopSellingTable(props) {
                         // startIcon={<Done />}
                       >
                         Pay
-                      </Button>
+                      </Button> */}
+
+                      {row?.status === "pending" ? (
+                        <Button
+                          onClick={() => {
+                            // onClickRow(row._id);
+                            submitDepsit(row);
+                          }}
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          // startIcon={<Done />}
+                        >
+                          Pay
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="contained"
+                          color="primary"
+                          size="small"
+                          disabled
+                        >
+                          Paid
+                        </Button>
+                      )}
+                      
+
+
                     </TableCell>
                   </TableRow>
                 ))}
