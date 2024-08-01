@@ -93,52 +93,128 @@ export default function JwtLogin() {
   const [error, setError] = useState(null);
   const [passowrdError, setPasswordError] = useState(false);
   const [emailError, setEmailError] = useState(false);
-  const { superlogin, user } = useAuth();
+  const { superlogin, user, chainweaverConnect } = useAuth();
   const [open2FAModal, setOpen2FAModal] = useState(false);
   const [qrImage, setQrImage] = useState("");
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [secret, setSecret] = useState("");
-  const[token, setToken] = useState("");
+  const [token, setToken] = useState("");
+  const [isChainWeaverModalOpen, setIsChainWeaverModalOpen] = useState(false);
+  const [walletAddress, setWalletAddress] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   const handleFormSubmit = async (values) => {
-    setLoading(true);
+    // setLoading(true);
+    // try {
+    setEmailError(false);
+    setPasswordError(false);
+    setError(null);
+    setEmail(values.email);
+    setPassword(values.password);
+    setIsChainWeaverModalOpen(true);
+    console.log("values", values);
+
+    // const response = await superlogin(values.email, values.password);
+    // console.log(response, "login response");
+    // if (response.status === "success") {
+    //   console.log("login response", response.data.is2FAModalOpen);
+    //   if (response.data.is2FAModalOpen === true) {
+    //     setQrImage(response.data.qrCodeUrl);
+    //     setSecret(response.data.secret);
+    //     setOpen2FAModal(true);
+    //     setToken(response.token);
+    //   } else {
+    //     navigate("/dashboard");
+    //   }
+
+    //   // navigate("/dashboard");
+    // } else {
+    //   setLoading(false);
+    //   if (response.message === "Password not match") {
+    //     setError(response.message);
+    //     setPasswordError(true);
+    //     setEmailError(false);
+    //     return;
+    //   }
+    //   if (response.message === "User not found") {
+    //     setError(response.message);
+    //     setEmailError(true);
+    //     setPasswordError(false);
+    //     return;
+    //   }
+
+    //   setError(response.message);
+    //   setEmailError(false);
+    //   setPasswordError(false);
+    // }
+    // } catch (e) {
+    //   setLoading(false);
+    // }
+  };
+
+  const handleSubmitChainWeaverConnect = async () => {
     try {
-      const response = await superlogin(values.email, values.password);
-      console.log(response, "login response");
-      if (response.status === "success") {
-        console.log("login response", response.data.is2FAModalOpen);
-        if (response.data.is2FAModalOpen === true) {
-          setQrImage(response.data.qrCodeUrl);
-          setSecret(response.data.secret);
-          setOpen2FAModal(true);
-          setToken(response.token);
-        } else {
-          navigate("/dashboard");
-        }
-
-        // navigate("/dashboard");
-      } else {
+      setLoading(true);
+      setEmailError(false);
+      setPasswordError(false);
+      setError(null);
+      const response = await chainweaverConnect(walletAddress);
+      console.log(response);
+      if (response && response.status === 'success') {  // Changed this line
         setLoading(false);
-        if (response.message === "Password not match") {
-          setError(response.message);
-          setPasswordError(true);
-          setEmailError(false);
-          return;
+        setIsChainWeaverModalOpen(false);
+        console.log("login response", response);
+        const loginResponse = await superlogin(email, password, response);  // Changed 'values.email' to 'email'
+        console.log(loginResponse, "login response");
+        if (loginResponse.status === "success") {
+          console.log("login response", loginResponse.data.is2FAModalOpen);
+          if (loginResponse.data.is2FAModalOpen === true) {
+            setQrImage(loginResponse.data.qrCodeUrl);
+            setSecret(loginResponse.data.secret);
+            setOpen2FAModal(true);
+            setToken(loginResponse.token);
+          } else {
+            navigate("/dashboard");
+          }
+        } else {
+          handleLoginError(loginResponse);
         }
-        if (response.message === "User not found") {
-          setError(response.message);
-          setEmailError(true);
-          setPasswordError(false);
-          return;
-        }
-
-        setError(response.message);
+      } else {
+        console.log(response);
+        setLoading(false);
+        setError(response.error?.message || "An error occurred");
         setEmailError(false);
         setPasswordError(false);
       }
     } catch (e) {
+      console.error(e);
       setLoading(false);
+      setError("An unexpected error occurred");
     }
+  };
+  
+  const handleLoginError = (response) => {
+    setLoading(false);
+    if (response.message === "Password not match") {
+      setError(response.message);
+      setPasswordError(true);
+      setEmailError(false);
+    } else if (response.message === "User not found") {
+      setError(response.message);
+      setEmailError(true);
+      setPasswordError(false);
+    } else {
+      setError(response.message);
+      setEmailError(false);
+      setPasswordError(false);
+    }
+  };
+
+
+
+  const handleChainWeaverConnect = async () => {
+    setIsChainWeaverModalOpen(true);
   };
 
   const handleChangeResetEmail = (e) => {
@@ -155,7 +231,7 @@ export default function JwtLogin() {
     if (twoFactorCode.trim() === "") {
       setError("Please enter 2FA code");
     }
-    
+
     const data = {
       token: twoFactorCode.trim(),
       secret,
@@ -300,80 +376,6 @@ export default function JwtLogin() {
             </Grid>
           ) : (
             <>
-              {/* Two Factor Model */}
-              {/* <Modal
-                className="rn-popup-modal upload-modal-wrapper"
-                show={isTwoFactorModalOpen}
-                onHide={() => setIsTwoFactorModalOpen(false)}
-                centered
-              >
-                {isTwoFactorModalOpen && (
-                  <button
-                    type="button"
-                    className="btn-close"
-                    aria-label="Close"
-                    onClick={() => setIsTwoFactorModalOpen(false)}
-                  >
-                    <i className="feather-x" />
-                  </button>
-                )}
-                <Modal.Body>
-                  <div className="modal-content">
-                    <div className="modal-header">
-                      <h3>Enable 2FA</h3>
-                    </div>
-                    <div className="modal-body">
-                      {qrImage.length > 0 && (
-                        <div
-                          className="form-group"
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            alignItems: "center",
-                          }}
-                        >
-                          <label htmlFor="address">Scan QR Code</label>
-                          <img src={qrImage} alt="qr code" />
-                        </div>
-                      )}
-                      <div className="form-group">
-                        <label htmlFor="address">Key</label>
-                        <input
-                          type="text"
-                          id="address"
-                          placeholder="Enter your key"
-                          value={twoFactorCode}
-                          onChange={(e) => setTwoFactorCode(e.target.value)}
-                        />
-                      </div>
-                      <div
-                        className="modal-footer"
-                        style={{
-                          display: "flex",
-                          justifyContent: "center",
-                        }}
-                      >
-                        <Button
-                          type="button"
-                          size="medium"
-                          onClick={() => setIsTwoFactorModalOpen(false)}
-                        >
-                          Close
-                        </Button>
-
-                        <Button
-                          type="button"
-                          size="medium"
-                          onClick={() => verify2FA()}
-                        >
-                          Verify
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                </Modal.Body>
-              </Modal> */}
-
               <Modal
                 open={open2FAModal}
                 onClose={() => setOpen2FAModal(false)}
@@ -464,6 +466,109 @@ export default function JwtLogin() {
               </Modal>
             </>
           )}
+          <Modal
+            open={isChainWeaverModalOpen}
+            onClose={() => setIsChainWeaverModalOpen(false)}
+            aria-labelledby="chainweaver-modal-title"
+            aria-describedby="chainweaver-modal-description"
+          >
+            <Box
+              sx={{
+                position: "absolute",
+                top: "50%",
+                left: "50%",
+                transform: "translate(-50%, -50%)",
+                width: 400,
+                bgcolor: "background.paper",
+                boxShadow: 24,
+                p: 4,
+              }}
+            >
+              <Typography
+                id="chainweaver-modal-title"
+                variant="h6"
+                component="h2"
+              >
+                Chainweaver Connect
+              </Typography>
+              <Typography id="chainweaver-modal-description" sx={{ mt: 2 }}>
+                <TextField
+                  fullWidth
+                  label="Wallet Address"
+                  variant="outlined"
+                  value={walletAddress}
+                  onChange={(e) => setWalletAddress(e.target.value)}
+                  sx={{ mb: 2 }}
+                />
+
+                <Typography>
+                  Please enter your Chainweaver wallet address to connect
+                </Typography>
+
+
+                {error && (
+                  <Paragraph
+                    color="error"
+                    sx={{
+                      mb: 2,
+                      textAlign: "center",
+                      color: theme.palette.error.main,
+                    }}
+                  >
+                    {error}
+                  </Paragraph>
+                )}
+
+
+
+
+
+                <Box
+                  sx={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    mt: 2,
+                  }}
+                >
+                  <Button
+                    variant="contained"
+                    onClick={() => setIsChainWeaverModalOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  {/* <Button
+                    variant="contained"
+                    onClick={() => {
+                      handleSubmitChainWeaverConnect();
+                    }}
+                  >
+                    Confirm
+                  </Button> */}
+
+                  { loading ? (
+                    <LoadingButton
+                      loading={loading}
+                      variant="contained"
+                      color="primary"
+                      // onClick={() => handleSubmitChainWeaverConnect()}
+                    >
+                      Connect
+                    </LoadingButton>
+                  ) : (
+                    <Button
+                      variant="contained"
+                      onClick={() => handleSubmitChainWeaverConnect()}
+                    >
+                      Connect
+                    </Button>
+                  )}
+
+
+
+                </Box>
+              </Typography>
+            </Box>
+          </Modal>
         </Grid>
       </Card>
     </StyledRoot>

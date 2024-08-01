@@ -88,6 +88,23 @@ const getAllApproved = async (page: number, limit: number, search: string) => {
     return error.response.data;
   }
 };
+// router.get("/getById/:id",adminMiddleware, launchCollectionController.getById);
+
+//getlaunchpad by id
+const getLaunchpadById = async (id: string) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.get(`${url}/launch-collection/getById/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
 
 
 
@@ -98,5 +115,6 @@ export default {
     approveLaunchpad,
     rejectLaunchpad,
     launchLaunchpad,
-    getAllApproved
+    getAllApproved,
+    getLaunchpadById
 };

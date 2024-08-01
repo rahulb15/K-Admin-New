@@ -1,12 +1,26 @@
 import { createContext, useEffect, useReducer } from "react";
 import axios from "axios";
-// CUSTOM COMPONENT
+import {
+  createClient,
+  Pact,
+  createSignWithChainweaver,
+  createEckoWalletQuicksign,
+  signWithChainweaver,
+} from "@kadena/client"; // CUSTOM COMPONENT
 import { MatLoading } from "app/components";
 import userServices from "services/userServices.tsx";
 const url = "http://localhost:5000/api/v1";
 const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
 console.log(NETWORKID, "NETWORKID");
 
+import {
+  CHAIN_ID,
+  GAS_PRICE,
+  NETWORK,
+  creationTime,
+} from "../../constants/contextConstants";
+const API_HOST = NETWORK;
+const client = createClient(API_HOST);
 const initialState = {
   user: null,
   isInitialized: false,
@@ -45,6 +59,9 @@ const AuthContext = createContext({
   login: () => {},
   logout: () => {},
   register: () => {},
+  superlogin: () => {},
+  chainweaverConnect: () => {},
+
 });
 
 export const AuthProvider = ({ children }) => {
@@ -93,6 +110,76 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  //   const setVerifiedAccount = async (accountName) => {
+  //     try {
+  //         let data = await Pact.fetch.local(
+  //             {
+  //                 pactCode: `(coin.details ${JSON.stringify(accountName)})`,
+  //                 meta: Pact.lang.mkMeta(
+  //                     "",
+  //                     CHAIN_ID,
+  //                     GAS_PRICE,
+  //                     3000,
+  //                     creationTime(),
+  //                     600
+  //                 ),
+  //             },
+  //             NETWORK
+  //         );
+  //         if (data.result.status === "success") {
+  //             setLocalRes(data.result.data);
+  //             return data.result;
+  //         }
+  //     } catch (e) {
+  //         console.log(e);
+  //     }
+  // };
+
+  // const getColCreator = async (colName) => {
+  //   console.log("colName", colName);
+  //   const pactCode = `(free.lptest001.get-collection-creator ${JSON.stringify(
+  //     colName
+  //   )})`;
+
+  //   const transaction = Pact.builder
+  //     .execution(pactCode)
+  //     .setMeta({ chainId: "1" })
+  //     .createTransaction();
+
+  //   const response = await client.local(transaction, {
+  //     preflight: false,
+  //     signatureVerification: false,
+  //   });
+
+  //   if (response.result.status == "success") {
+  //     // alert(`Sale is live`);
+  //     console.log(response.result.data);
+  //     return response.result.data;
+  //   } else {
+  //     alert(`CHECK CONSOLE`);
+  //   }
+  // };
+
+  const chainweaverConnect = async (walletAddress) => {
+    const admin = walletAddress;
+    console.log(admin);
+    const pactCode = `(coin.details ${JSON.stringify(admin)})`;
+    console.log(pactCode);
+
+    const transaction = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: "1" })
+      .createTransaction();
+
+    const response = await client.local(transaction, {
+      preflight: false,
+      signatureVerification: false,
+    });
+    console.log(response);
+
+    return response.result;
+  };
+
   const enable2FA = async (token) => {
     // const token = localStorage.getItem("token");
 
@@ -115,16 +202,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const superlogin = async (email, password) => {
+  const superlogin = async (email, password, response) => {
     try {
-      const response = await eckoWalletConnect();
+      // const response = await eckoWalletConnect();
+      // const response = await chainweaverConnect();
       console.log(response);
       if (response.status === "success") {
         console.log(response);
         const user = await axios.post(`${url}/superadmin/login`, {
           email,
           password,
-          walletAddress: response.account.account,
+          walletAddress: response.data.account,
         });
         console.log(user);
         if (user.data.status === "success") {
@@ -162,7 +250,7 @@ export const AuthProvider = ({ children }) => {
 
           // dispatch({ type: "LOGIN", payload: { user: user.data.data } });
           // localStorage.setItem("token", user.data.token);
-        }else {
+        } else {
           return user.data;
         }
 
@@ -227,7 +315,7 @@ export const AuthProvider = ({ children }) => {
 
           // dispatch({ type: "LOGIN", payload: { user: user.data.data } });
           // localStorage.setItem("token", user.data.token);
-        }else {
+        } else {
           return user.data;
         }
 
@@ -295,7 +383,7 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, method: "JWT", login, superlogin, logout, register }}
+      value={{ ...state, method: "JWT", login, superlogin, logout, register, chainweaverConnect }}
     >
       {children}
     </AuthContext.Provider>

@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { Button, Modal, Box, Typography, Grid, Stack } from "@mui/material";
-import { PreSaleForm, WhitelistForm, CreateNGCollectionForm, UnrevealedTokensForm } from "./Forms"; // Import forms
-import { useSelector } from "react-redux";
-
+import {
+  PreSaleForm,
+  WhitelistForm,
+  CreateNGCollectionForm,
+  UnrevealedTokensForm,
+} from "./Forms"; // Import forms
+import { useSelector, useDispatch } from "react-redux";
+import { useEffect } from "react";
+import launchapadServices from "services/launchapadServices.tsx";
+import { setSelection } from "features/selectionLaunchpadSlice";
+import { setModalOpen } from "features/launchpadModalActionSlice";
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -17,17 +25,47 @@ const modalStyle = {
 const MintAndLaunch = () => {
   const [open, setOpen] = useState(false);
   const [formType, setFormType] = useState("");
+  const dispatch = useDispatch();
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
   );
   console.log("selection", selection);
 
+  const refresh = useSelector((state) => state?.refresh?.isRefresh);
+  console.log("refresh", refresh);
+
+  const launchpadModalAction = useSelector(
+    (state) => state?.launchpadModalAction?.isModalOpen
+  );
+  console.log("launchpadModalAction", launchpadModalAction);
+
+  useEffect(() => {
+    if (!selection?._id) return;
+
+    const getLaunchpadById = async (id) => {
+      try {
+        await launchapadServices.getLaunchpadById(id).then((res) => {
+          console.log("res", res.data);
+          dispatch(setSelection(res.data));
+        });
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getLaunchpadById(selection?._id);
+  }, [refresh,launchpadModalAction ]);
+
   const handleOpen = (type) => {
     setFormType(type);
     setOpen(true);
+    dispatch(setModalOpen(true));
   };
 
-  const handleClose = () => setOpen(false);
+  const handleClose = () => {
+    setOpen(false);
+    dispatch(setModalOpen(false));
+  };
 
   return (
     <Box p={3}>
@@ -94,7 +132,10 @@ const MintAndLaunch = () => {
                 variant="contained"
                 color="primary"
                 onClick={() => handleOpen("presale")}
-                disabled={selection?.enablePresale === false || selection?.presaleStartDateAndTime}
+                disabled={
+                  selection?.enablePresale === false ||
+                  selection?.presaleStartDateAndTime
+                }
               >
                 Presale
               </Button>
@@ -102,7 +143,10 @@ const MintAndLaunch = () => {
                 variant="contained"
                 color="secondary"
                 onClick={() => handleOpen("whitelist")}
-                disabled={selection?.enableWhitelist === false || selection?.whitelistStartDateAndTime}
+                disabled={
+                  selection?.enableWhitelist === false ||
+                  selection?.whitelistStartDateAndTime
+                }
               >
                 Whitelist
               </Button>
@@ -125,12 +169,10 @@ const MintAndLaunch = () => {
               </Button>
             </Stack>
           </Stack>
-          </Grid>
-
-
+        </Grid>
       </Grid>
 
-      <Modal open={open} onClose={handleClose}>
+      <Modal open={launchpadModalAction} onClose={handleClose}>
         <Box sx={modalStyle}>
           {formType === "presale" && <PreSaleForm />}
           {formType === "whitelist" && <WhitelistForm />}

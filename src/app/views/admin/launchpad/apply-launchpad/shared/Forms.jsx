@@ -23,6 +23,8 @@ import useAuth from "app/hooks/useAuth";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect, useState } from "react";
 import { UnrevealedTokensModal } from "./Models";
+import { setRefresh } from "features/refreshSlice";
+import { setModalOpen } from "features/launchpadModalActionSlice";
 
 const presaleSchema = yup.object().shape({
   startDateAndTime: yup.date().required("Start date and time is required"),
@@ -76,6 +78,7 @@ const PreSaleForm = (props) => {
   } = useForm({
     resolver: yupResolver(presaleSchema),
   });
+  const dispatch = useDispatch();
   const [createPresale] = useCreatePresaleMutation();
   const { login, user } = useAuth();
   const [presaleStartDateAndTime, setPresaleStartDateAndTime] =
@@ -180,14 +183,22 @@ const PreSaleForm = (props) => {
             text: "Presale created successfully",
           });
           // setFinalizeModalOpen(false);
+          dispatch(setRefresh(true));
+          dispatch(setModalOpen(false));
         } else {
           console.error("Error creating presale", response.error);
+          dispatch(setRefresh(false));
+          dispatch(setModalOpen(false));
         }
       } else if (result.error) {
         console.error("Error creating presale", result.error);
+        dispatch(setRefresh(false));
+        dispatch(setModalOpen(false));
       }
     } catch (error) {
       console.error("Error:", error);
+      dispatch(setRefresh(false));
+      dispatch(setModalOpen(false));
     }
   };
 
@@ -273,6 +284,7 @@ const WhitelistForm = (props) => {
   } = useForm({
     resolver: yupResolver(whitelistSchema),
   });
+  const dispatch = useDispatch();
   const [createWl] = useCreateWlMutation();
   const { login, user } = useAuth();
   const selection = useSelector(
@@ -332,12 +344,20 @@ const WhitelistForm = (props) => {
             title: "Success",
             text: "Whitelist created successfully",
           });
+          dispatch(setRefresh(true));
+          dispatch(setModalOpen(false));
+
+
         }
       } else if (result.error) {
         console.error("Error creating whitelist", result.error);
+        dispatch(setRefresh(false));
+        dispatch(setModalOpen(false));
       }
     } catch (error) {
       console.error("Error:", error);
+      dispatch(setRefresh(false));
+      dispatch(setModalOpen(false));
     }
   };
 
@@ -406,7 +426,7 @@ const CreateNGCollectionForm = (props) => {
   } = useForm({
     resolver: yupResolver(createNgCollectionSchema),
   });
-
+  const dispatch = useDispatch();
   const [createNgCollection] = useCreateNgCollectionMutation();
   const { login, user } = useAuth();
   const selection = useSelector(
@@ -440,8 +460,16 @@ const CreateNGCollectionForm = (props) => {
           .launchLaunchpad(selection?._id)
           .then((response) => {
             console.log(response);
+            dispatch(setRefresh(true));
+            dispatch(setModalOpen(false));
 
             if (response.data.isApproved) {
+              Swal.fire({
+                icon: "success",
+                title: "Success",
+                text: "Collection launched successfully",
+              });
+
               const data = {
                 collectionName: response.data.collectionName,
                 applicationType: "launchpad",
@@ -460,13 +488,25 @@ const CreateNGCollectionForm = (props) => {
             }
           })
           .catch((error) => {
+            dispatch(setRefresh(false));
+            dispatch(setModalOpen(false));
             console.log(error);
+            Swal.fire({
+              icon: "error",
+              title: "Error",
+              text: "Error launching collection",
+            });
           });
       } else if (result.error) {
         console.error("Error launching collection", result.error);
       }
     } catch (error) {
       console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: "Error launching collection",
+      });
     }
   };
 
@@ -505,6 +545,7 @@ const UnrevealedTokensForm = (props) => {
   } = useForm({
     resolver: yupResolver(unRevealedTokensSchema),
   });
+  const dispatch = useDispatch();
   const [unRevealedTokens] = useUnrevealedTokensMutation();
   const { user } = useAuth();
   const selection = useSelector(
@@ -532,11 +573,13 @@ const UnrevealedTokensForm = (props) => {
             ? "CW"
             : user?.walletName,
       });
-
+console.log("🚀 ~ onSubmit ~ result", result);
       if (result?.data?.length > 0) {
         console.log("Unrevealed Tokens created successfully", result);
         setTableData(result.data);
         setIsModalOpen(true);
+        // dispatch(setRefresh(true));
+        // dispatch(setModalOpen(false));
         // Swal.fire({
         //   icon: "success",
         //   title: "Success",
@@ -544,14 +587,29 @@ const UnrevealedTokensForm = (props) => {
         // });
       } else if (result.error) {
         console.error("Error creating unrevealed tokens", result.error);
+        dispatch(setRefresh(false));
+        dispatch(setModalOpen(false));
+      }
+      else {
+        Swal.fire({
+          icon: "warning",
+          title: "Warning",
+          text: "No Data Found",
+        });
+        dispatch(setRefresh(false));
+        dispatch(setModalOpen(false));
       }
     } catch (error) {
       console.error("Error:", error);
+      dispatch(setRefresh(false));
+      dispatch(setModalOpen(false));
     }
   };
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
+    dispatch(setRefresh(true));
+    dispatch(setModalOpen(false));
   };
 
   return (

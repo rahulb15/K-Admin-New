@@ -25,6 +25,7 @@ import {
   StepLabel,
   Typography,
 } from "@mui/material";
+import { LoadingButton } from "@mui/lab";
 import InputLabel from "@mui/material/InputLabel";
 import Radio from "@mui/material/Radio";
 import RadioGroup from "@mui/material/RadioGroup";
@@ -41,7 +42,8 @@ import {
   useLaunchCollectionMutation,
   useCreateNgCollectionMutation,
 } from "services/launchpad.service";
-
+import Swal from "sweetalert2";
+import Loader from "app/components/Loader";
 // STYLED COMPONENTS
 const CardHeader = styled(Box)(() => ({
   display: "flex",
@@ -94,10 +96,7 @@ export default function TopSellingTable(props) {
   const [open, setOpen] = useState(false);
   const [activeStep, setActiveStep] = useState(0);
   const [disable, setDisable] = useState(true);
-  const [acceptModalOpen, setAcceptModalOpen] = useState(false);
-  const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [id, setId] = useState("");
-  const [selectedRow, setSelectedRow] = useState({});
   const [formData, setFormData] = useState({
     collectionName: "",
     creatorName: "",
@@ -117,7 +116,7 @@ export default function TopSellingTable(props) {
     royaltyPercentage: "",
   });
   const [launchCollection] = useLaunchCollectionMutation();
-  const [createNgCollection] = useCreateNgCollectionMutation();
+  const [loading, setLoading] = useState(false);
 
   const steps = ["Step 1", "Step 2"];
 
@@ -131,46 +130,36 @@ export default function TopSellingTable(props) {
     setOpen(false);
     setId("");
     setActiveStep(0);
-    setSelectedRow({});
-  };
-
-  const handleAcceptModalOpen = () => {
-    setAcceptModalOpen(true);
-  };
-
-  const handleAcceptModalClose = () => {
-    setAcceptModalOpen(false);
-    setId("");
-  };
-
-  const handleRejectModalOpen = () => {
-    setRejectModalOpen(true);
-  };
-
-  const handleRejectModalClose = () => {
-    setRejectModalOpen(false);
-    setId("");
   };
 
   const handleNext = () =>
     setActiveStep((prevActiveStep) => prevActiveStep + 1);
   const handleBack = () =>
     setActiveStep((prevActiveStep) => prevActiveStep - 1);
-  console.log("🚀 ~ onAccept ~ selectedRow", selectedRow);
 
-  const onAccept = async (id) => {
-    console.log("🚀 ~ onAccept ~ id", id);
-    console.log("🚀 ~ onAccept ~ selectedRow", selectedRow);
+  const onAccept = async (product) => {
+    const result = await Swal.fire({
+      title: "Are you sure you want to accept?",
+      icon: "question",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+    });
+
+    if (result.isConfirmed) {
+      setLoading(true);
+      console.log("🚀 ~ onAccept ~ id", product?._id);
+      console.log("🚀 ~ onAccept ~ selectedRow", product);
       try {
         const result = await launchCollection({
-          launchCollectionName: selectedRow.collectionName,
+          launchCollectionName: product.collectionName,
           wallet: "CW",
         });
         console.log("🚀 ~ onAccept ~ result", result);
         if (result.data.result.status === "success") {
           console.log("Collection launched successfully", result);
           launchapadServices
-            .approveLaunchpad(id)
+            .approveLaunchpad(product?._id)
             .then((response) => {
               console.log(response);
 
@@ -184,40 +173,86 @@ export default function TopSellingTable(props) {
                   .createCollection(data)
                   .then((response) => {
                     console.log(response);
+                    setLoading(false);
                     props.setRefresh(!props.refresh);
-                    handleAcceptModalClose();
+                    Swal.fire(
+                      "Accepted!",
+                      "The request has been accepted.",
+                      "success"
+                    );
                   })
                   .catch((error) => {
                     console.log(error);
+                    setLoading(false);
+                    Swal.fire(
+                      "Error",
+                      "An error occurred while creating the collection.",
+                      "error"
+                    );
                   });
               } else {
+                setLoading(false);
                 console.log("🚀 ~ onAccept ~ response", response);
+                Swal.fire(
+                  "Accepted!",
+                  "The request has been accepted.",
+                  "success"
+                );
               }
             })
             .catch((error) => {
               console.log(error);
+              setLoading(false);
+              Swal.fire(
+                "Error",
+                "An error occurred while approving the launchpad.",
+                "error"
+              );
             });
         } else if (result.error) {
+          setLoading(false);
           console.error("Error launching collection", result.error);
+          Swal.fire(
+            "Error",
+            "An error occurred while launching the collection.",
+            "error"
+          );
         }
       } catch (error) {
+        setLoading(false);
         console.error("Error:", error);
+        Swal.fire("Error", "An unexpected error occurred.", "error");
       }
-  
+    }
   };
 
-  const onReject = (id) => {
-    console.log("🚀 ~ onReject ~ id", id);
-    launchapadServices
-      .rejectLaunchpad(id)
-      .then((response) => {
-        console.log(response);
-        props.setRefresh(!props.refresh);
-        handleRejectModalClose();
-      })
-      .catch((error) => {
-        console.log(error);
-      });
+  const onReject = (data) => {
+    Swal.fire({
+      title: "Are you sure you want to reject?",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes",
+      cancelButtonText: "No",
+    }).then((result) => {
+      if (result.isConfirmed) {
+        console.log("🚀 ~ onReject ~ id", data?._id);
+        launchapadServices
+          .rejectLaunchpad(data?._id)
+          .then((response) => {
+            console.log(response);
+            props.setRefresh(!props.refresh);
+            Swal.fire("Rejected!", "The request has been rejected.", "success");
+          })
+          .catch((error) => {
+            console.log(error);
+            Swal.fire(
+              "Error",
+              "An error occurred while rejecting the launchpad.",
+              "error"
+            );
+          });
+      }
+    });
   };
 
   const onClickRow = (id) => {
@@ -589,54 +624,14 @@ export default function TopSellingTable(props) {
                     View
                   </TableCell>
 
-                  {/* <TableCell colSpan={2} sx={{ px: 0 }}>
+                  <TableCell colSpan={2} sx={{ px: 0 }}>
                     Action
-                  </TableCell> */}
-                  {/* {user?.role === "superadmin" && ( */}
-                    <TableCell colSpan={2} sx={{ px: 0 }}>
-                      Action
-                    </TableCell>
+                  </TableCell>
                   {/* )} */}
                 </TableRow>
               </TableHead>
 
               <TableBody>
-                {/* {nftsList.map((nft, index) => (
-              <TableRow key={index} hover>
-                <TableCell colSpan={4} align="left" sx={{ px: 0, textTransform: "capitalize" }}>
-                  <Box display="flex" alignItems="center" gap={4}>
-                    <Avatar src={nft.imgUrl} />
-                    <Paragraph>{nft.name}</Paragraph>
-                  </Box>
-                </TableCell>
-
-                <TableCell align="left" colSpan={2} sx={{ px: 0, textTransform: "capitalize" }}>
-                  ${nft.price > 999 ? (nft.price / 1000).toFixed(1) + "k" : nft.price}
-                </TableCell>
-
-                <TableCell sx={{ px: 0 }} align="left" colSpan={2}>
-                  {product.available ? (
-                    product.available < 20 ? (
-                      <Small bgcolor={bgSecondary}>{product.available} available</Small>
-                    ) : (
-                      <Small bgcolor={bgPrimary}>in stock</Small>
-                    )
-                  ) : (
-                    <Small bgcolor={bgError}>out of stock</Small>
-                  )}
-                </TableCell>
-                <TableCell align="left" colSpan={2} sx={{ px: 0 }}>
-                  {nft.available}
-                </TableCell>
-
-                <TableCell sx={{ px: 0 }} colSpan={1}>
-                  <IconButton>
-                    <Edit color="primary" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))} */}
-
                 {props?.data?.map(
                   (product, index) => (
                     console.log("🚀 ~ TopSellingTable ~ product", product),
@@ -688,39 +683,6 @@ export default function TopSellingTable(props) {
                             <Visibility color="primary" />
                           </IconButton>
                         </TableCell>
-
-                        {/* <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.isApproved === false &&
-                          product.isRejected === false ? (
-                            <>
-                              <IconButton
-                                onClick={() => {
-                                  setId(product._id);
-                                  handleAcceptModalOpen();
-                                }}
-                              >
-                                <Done color="primary" />
-                              </IconButton>
-                              &nbsp; &nbsp; &nbsp;
-                              <IconButton
-                                onClick={() => {
-                                  // onReject(product._id)
-                                  setId(product._id);
-                                  handleRejectModalOpen();
-                                }}
-                              >
-                                <Close color="error" />
-                              </IconButton>
-                            </>
-                          ) : (
-                            (product.isApproved === true && (
-                              <Small bgcolor={bgPrimary}>Approved</Small>
-                            )) ||
-                            (product.isRejected === true && (
-                              <Small bgcolor={bgError}>Rejected</Small>
-                            ))
-                          )}
-                        </TableCell> */}
                         {user?.role === "superadmin" && (
                           <TableCell colSpan={2} sx={{ px: 0 }}>
                             {product.isApproved === false &&
@@ -728,9 +690,7 @@ export default function TopSellingTable(props) {
                               <>
                                 <IconButton
                                   onClick={() => {
-                                    setId(product._id);
-                                    setSelectedRow(product);
-                                    handleAcceptModalOpen();
+                                    onAccept(product);
                                   }}
                                 >
                                   <Done color="primary" />
@@ -738,10 +698,7 @@ export default function TopSellingTable(props) {
                                 &nbsp; &nbsp; &nbsp;
                                 <IconButton
                                   onClick={() => {
-                                    // onReject(product._id)
-                                    setId(product._id);
-                                    setSelectedRow(product);
-                                    handleRejectModalOpen();
+                                    onReject(product);
                                   }}
                                 >
                                   <Close color="error" />
@@ -757,29 +714,6 @@ export default function TopSellingTable(props) {
                             )}
                           </TableCell>
                         )}
-
-                        {user?.role === "admin" && (
-                          <TableCell colSpan={2} sx={{ px: 0 }}>
-                           
-                                <IconButton
-                                  onClick={() => {
-                                    setId(product._id);
-                                    setSelectedRow(product);
-                                    handleAcceptModalOpen();
-                                  }}
-                                >
-                                  <Done color="primary" />
-                                </IconButton>
-                               
-                              
-                          
-                        
-                          </TableCell>
-                        )}
-
-
-
-
                       </TableRow>
                     )
                   )
@@ -822,118 +756,7 @@ export default function TopSellingTable(props) {
         </Box>
       </Modal>
 
-      <Modal open={acceptModalOpen} onClose={handleAcceptModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography
-            sx={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}
-          >
-            Are you sure you want to accept?
-          </Typography>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              onClick={
-                // handleAcceptModalClose
-                () => {
-                  onAccept(id);
-                }
-              }
-              sx={{ float: "right", margin: "10px" }}
-            >
-              Yes
-            </Button>
-
-            <Button
-              onClick={handleAcceptModalClose}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              No
-            </Button>
-          </div>
-        </Box>
-      </Modal>
-
-      <Modal open={rejectModalOpen} onClose={handleRejectModalClose}>
-        <Box
-          sx={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%)",
-            width: 400,
-            bgcolor: "background.paper",
-            border: "1px solid #000",
-            borderRadius: 5,
-            boxShadow: 24,
-            p: 4,
-          }}
-        >
-          <Typography
-            sx={{ fontSize: 24, fontWeight: "bold", textAlign: "center" }}
-          >
-            Are you sure you want to reject?
-          </Typography>
-          <div style={{ display: "flex", justifyContent: "center" }}>
-            <Button
-              onClick={() => onReject(id)}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              Yes
-            </Button>
-            <Button
-              onClick={handleRejectModalClose}
-              sx={{ float: "right", margin: "10px" }}
-            >
-              No
-            </Button>
-          </div>
-        </Box>
-      </Modal>
+      {loading && <Loader />}
     </>
   );
 }
-
-const nftsList = [
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 1",
-    price: 100,
-    available: 15,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 2",
-    price: 1500,
-    available: 30,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 3",
-    price: 1900,
-    available: 35,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 4",
-    price: 100,
-    available: 0,
-  },
-  {
-    imgUrl: "/assets/nfts/nft1.png",
-    name: "NFT 5",
-    price: 1190,
-    available: 5,
-  },
-];
