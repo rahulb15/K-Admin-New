@@ -14,11 +14,12 @@ import storage from "redux-persist/lib/storage";
 // import launchpadReducer from 'src/features/launchpadSlice';
 // import { launchpadApi } from 'src/services/launchpad.service'
 import { launchpadApi } from "../services/launchpad.service";
+import { priorityPassApi } from "services/prioritypass.service";
 import launchpadReducer from "../features/launchpadSlice";
 import searchReducer from "../features/searchSlice";
 import selectionLaunchpadReducer from "../features/selectionLaunchpadSlice";
 import refreshReducer from "features/refreshSlice";
-import  launchpadModalActionReducer from "features/launchpadModalActionSlice";
+import launchpadModalActionReducer from "features/launchpadModalActionSlice";
 
 const rootReducer = combineReducers({
   launchpad: launchpadReducer,
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   refresh: refreshReducer,
   launchpadModalAction: launchpadModalActionReducer,
   [launchpadApi.reducerPath]: launchpadApi.reducer,
+  [priorityPassApi.reducerPath]: priorityPassApi.reducer,
 });
 
 const persistConfig = {
@@ -58,7 +60,11 @@ export const store = configureStore({
       serializableCheck: {
         ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
       },
-    }).concat(loggerMiddleware, launchpadApi.middleware),
+    }).concat(
+      loggerMiddleware,
+      launchpadApi.middleware,
+      priorityPassApi.middleware
+    ),
 });
 
 export const persistor = persistStore(store);

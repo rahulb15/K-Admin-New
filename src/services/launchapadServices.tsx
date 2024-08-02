@@ -107,6 +107,27 @@ const getLaunchpadById = async (id: string) => {
 };
 
 
+const uploadImage = async (formData: any) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(`${url}/launch-collection/upload-image-data-admin`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`
+      }
+    });
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+}
+
+
+
+
+
+
 
 
 
@@ -116,5 +137,6 @@ export default {
     rejectLaunchpad,
     launchLaunchpad,
     getAllApproved,
-    getLaunchpadById
+    getLaunchpadById,
+    uploadImage
 };

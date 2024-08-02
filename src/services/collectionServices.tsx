@@ -2,6 +2,35 @@ import axios from "axios";
 
 const url = process.env.REACT_APP_API_URL;
 
+
+
+// launch-collection
+const launchCollection = async (body:any) => {
+  try {
+    console.log(body, "body");
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${url}/launch-collection/create-pass`,
+      body,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    console.log(response, "response");
+    return response;
+  } catch (error) {
+    console.error(error);
+  }
+
+};
+
+
+
+
+
+
 //create collection
 const createCollection = async (data: any) => {
   try {
@@ -54,6 +83,7 @@ const updateCollection = async (body:any,name:any) => {
 };
 
 export default {
+  launchCollection,
   createCollection,
   getAll,
   updateCollection,

@@ -24,6 +24,7 @@ const Users = Loadable(lazy(() => import("app/views/super-admin/users/users")));
 const Deposits = Loadable(lazy(() => import("app/views/super-admin/payments/Deposits")));
 const Transactions = Loadable(lazy(() => import("app/views/super-admin/payments/Transactions")));
 const ApplyLaunchpadAdmin = Loadable(lazy(() => import("app/views/super-admin/launchpad/apply-launchpad/ApplyLaunchpad")));
+const PriorityPass = Loadable(lazy(() => import("app/views/super-admin/launchpad/priority-pass/PriorityPass")));
 
 // Admin Pages
 const ApplyLaunchpad = Loadable(lazy(() => import("app/views/admin/launchpad/apply-launchpad/ApplyLaunchpad")));
@@ -48,6 +49,7 @@ const routes = [
       { path: "/payments/deposits", element: <Deposits />, auth: authRoles.superadmin },
       { path: "/payments/transactions", element: <Transactions />, auth: authRoles.superadmin },
       { path: "/launchpad/apply-launchpad", element: <ApplyLaunchpadAdmin />, auth: authRoles.superadmin },
+      { path: "/launchpad/priority-pass", element: <PriorityPass />, auth: authRoles.superadmin },
       
       // Admin Routes
       { path: "/admin/launchpad/apply-launchpad", element: <ApplyLaunchpad />, auth: authRoles.admin },

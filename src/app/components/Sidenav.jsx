@@ -51,6 +51,7 @@ export default function Sidenav({ children }) {
     { name: "Users", path: "/users", icon: "people", roles: ["superadmin"] },
     { name: "Launchpad", path: "/launchpad", icon: "launch", roles: ["superadmin", "admin", "user"], children: [
       { name: "Apply Launchpad", path: "/launchpad/apply-launchpad", iconText: "AL", roles: ["superadmin"] },
+      { name: "Priority Pass", path: "/launchpad/priority-pass", iconText: "SL", roles: ["superadmin"] },
       { name: "Apply Launchpad", path: "/admin/launchpad/apply-launchpad", iconText: "AL", roles: ["user"] }
     ] },
     { name: "Blog", path: "/blog", icon: "description", roles: ["superadmin"], children: [

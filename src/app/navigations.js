@@ -12,6 +12,13 @@ export const navigations = [
         path: "/launchpad/apply-launchpad",
         iconText: "AL",
       },
+      {
+        name: "Priority Pass",
+        path: "/launchpad/priority-pass",
+        iconText: "SL",
+      },
+      
+
     ],
   },
   {
