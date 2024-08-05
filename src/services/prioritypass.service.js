@@ -59,14 +59,14 @@ export const priorityPassApi = createApi({
                             (read-keyset 'guard)
                             ${JSON.stringify(account)}
                             ${JSON.stringify(collectionRequestUriList)}
-                            ${parseFloat(mintPrice).toFixed(2)}
+                            ${parseFloat(mintPrice).toFixed(1)}
                                   ${JSON.stringify(policy)}
 )`;
         console.log("pactCode", pactCode);
         const txn = Pact.builder
           .execution(pactCode)
           .addData("guard", guard)
-          .addSigner(account, (withCapability) => [
+          .addSigner(publicKey, (withCapability) => [
             withCapability("coin.GAS"),
             withCapability("free.kmpasstest002.IS_ADMIN"),
             withCapability("free.kmpasstest002.CREATE-COLLECTION"),
@@ -161,6 +161,117 @@ export const priorityPassApi = createApi({
         }
       },
     }),
+    // const sync_with_ng = async (accIds) => {
+    //   const colId = await collection_id();
+    //   console.log(colId);
+    //   console.log("Account IDs", accIds);
+    //   const account = admin;
+    //   const publicKey = account.slice(2, account.length);
+    //   const guard = { keys: [publicKey], pred: "keys-all" };
+  
+    //   const pactCode = `(free.kmpasstest002.bulk-sync-with-ng ${accIds})`;
+    //   // free.kmpasstest002.MINTPROCESS
+    //   const txn = Pact.builder
+    //     .execution(pactCode)
+    //     .addData("guard", guard)
+    //     .addData("marmalade_collection", { id: colId })
+    //     .addSigner(publicKey)
+    //     // .addSigner(publicKey, (withCapability) => [
+    //     //   withCapability("coin.GAS"),
+    //     //   withCapability("free.lptest001.MINTPROCESS", syncColName),
+    //     // ])
+    //     .setMeta({
+    //       creationTime: creationTime(),
+    //       sender: account,
+    //       gasLimit: 150000,
+    //       chainId: CHAIN_ID,
+    //       ttl: 28800,
+    //     })
+    //     .setNetworkId(NETWORK_ID)
+    //     .createTransaction();
+  
+    //   console.log("syncWithNg", txn);
+    //   console.log("sign");
+  
+    //   const localResponse = await client.local(txn, {
+    //     preflight: false,
+    //     signatureVerification: false,
+    //   });
+  
+    //   if (localResponse.result.status == "success") {
+    //     let signedTx;
+    //     if (wallet == "ecko") {
+    //       signedTx = await eckoWallet(txn);
+    //     }
+    //     if (wallet == "CW") {
+    //       signedTx = await signWithChainweaver(txn);
+    //     }
+    //     console.log("sign1");
+    //     const response = await signFunction(signedTx);
+    //     console.log("response", response);
+    //   } else {
+    //     console.log("Error in local response", localResponse.result.error);
+    //   }
+    // };
+    syncWithNg: builder.mutation({
+      async queryFn(args) {
+        console.log("args", args);
+        const { accIds } = args;
+        const account = admin;
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.kmpasstest002.bulk-sync-with-ng ${accIds})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+            withCapability("free.kmpasstest002.IS_ADMIN"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("syncWithNg", txn);
+        console.log("sign");
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (args.wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (args.wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+            console.log("sign1");
+            const response = await signFunction(signedTx);
+            console.log("response", response);
+            return { data: response };
+          } else {
+            console.log("Error in local response", localResponse.result.error);
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+
+
   }),
 });
 

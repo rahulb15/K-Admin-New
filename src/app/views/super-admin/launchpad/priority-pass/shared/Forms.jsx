@@ -18,8 +18,8 @@ import {
   CardMedia,
   IconButton,
 } from "@mui/material";
-import CloudUploadIcon from '@mui/icons-material/CloudUpload';
-import DeleteIcon from '@mui/icons-material/Delete';
+import CloudUploadIcon from "@mui/icons-material/CloudUpload";
+import DeleteIcon from "@mui/icons-material/Delete";
 import * as yup from "yup";
 import { yupResolver } from "@hookform/resolvers/yup";
 import {
@@ -148,14 +148,16 @@ const CreateCollectionForm = (props) => {
       //   message: 'Success',
       //   description: 'The request has succeeded.',
       //   data: {
-      //     collectionBannerImage: 
+      //     collectionBannerImage:
       //       'https://res.cloudinary.com/dh187xay8/image/upload/v1722575910/collectionBannerImage/file.jpg',
       //     collectionCoverImage: ''
       //   }
       // }
       if (response.status === "success") {
         const imageUrl =
-          response.data[type === "banner" ? "collectionBannerImage" : "collectionCoverImage"];
+          response.data[
+            type === "banner" ? "collectionBannerImage" : "collectionCoverImage"
+          ];
         setValue(
           type === "banner" ? "collectionBannerImage" : "collectionCoverImage",
           imageUrl
@@ -178,9 +180,18 @@ const CreateCollectionForm = (props) => {
     }
   };
 
-  const createCollectionRequest = async (totalSupply, creator, mintPrice, collectionRequestUriList, policy, wallet, collectionCoverImage, collectionBannerImage) => {
+  const createCollectionRequest = async (
+    totalSupply,
+    creator,
+    mintPrice,
+    collectionRequestUriList,
+    policy,
+    wallet,
+    collectionCoverImage,
+    collectionBannerImage
+  ) => {
     try {
-    const body = {
+      const body = {
         collectionName: "Priority Pass",
         creatorName: "Priority Pass",
         creatorEmail: "Priority Pass",
@@ -201,7 +212,7 @@ const CreateCollectionForm = (props) => {
         mintStartTime: "",
         mintEndDate: new Date(2030, 0, 1),
         mintEndTime: "",
-        allowFreeMints: false,  
+        allowFreeMints: false,
         enableWhitelist: false,
         enablePresale: false,
         enableAirdrop: false,
@@ -212,26 +223,29 @@ const CreateCollectionForm = (props) => {
         policy: policy,
         tokenList: collectionRequestUriList,
         collectionCoverImage: collectionCoverImage,
-        collectionBannerImage : collectionBannerImage,
-    };
+        collectionBannerImage: collectionBannerImage,
+      };
 
-    console.log("🚀 ~ createCollectionRequest ~ body", body);
+      console.log("🚀 ~ createCollectionRequest ~ body", body);
 
-    const response = await collectionService.launchCollection(body);
-    if (response?.data?.status === "success") {
+      const response = await collectionService.launchCollection(body);
+      if (response?.data?.status === "success") {
         console.log("🚀 ~ createCollectionRequest ~ response", response);
         return response;
-    } else {
+      } else {
         if (response?.data?.message === "Conflict") {
-            toast.error("Collection with this name already exists");
+          // toast.error("Collection with this name already exists");
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: "Collection with this name already exists",
+          });
         }
+      }
+    } catch (error) {
+      console.error("Error creating collection", error);
     }
-    }
-    catch (error) {
-    console.error("Error creating collection", error);
-    }
-    
-};
+  };
 
   const onSubmit = async (data) => {
     console.log("Collection data:", data);
@@ -243,26 +257,20 @@ const CreateCollectionForm = (props) => {
 
       console.log("URIs:", uris);
 
-      const resultApi = await createCollectionRequest(
-        data.totalSupply,
-        data.creator,
-        data.mintPrice,
-        uris,
-        data.policy,
-        user?.walletName === "Ecko Wallet" ? "ecko" : user?.walletName === "Chainweaver" ? "CW" : user?.walletName,
-        data.collectionCoverImage,
-        data.collectionBannerImage
-      );
+      //       const resultApi = await createCollectionRequest(
+      //         data.totalSupply,
+      //         data.creator,
+      //         data.mintPrice,
+      //         uris,
+      //         data.policy,
+      //         user?.walletName === "Ecko Wallet" ? "ecko" : user?.walletName === "Chainweaver" ? "CW" : user?.walletName,
+      //         data.collectionCoverImage,
+      //         data.collectionBannerImage
+      //       );
 
-      console.log("🚀 ~ onSubmit ~ result", resultApi);
+      //       console.log("🚀 ~ onSubmit ~ result", resultApi);
 
-
-return;
-
-
-
-
-
+      // return;
 
       const result = await createCollection({
         totalSupply: data.totalSupply,
@@ -277,8 +285,91 @@ return;
             ? "CW"
             : user?.walletName,
       });
+      console.log("🚀 ~ onSubmit ~ result", result);
+
+      // {
+      //   data: {
+      //     gas: 3550,
+      //     result: {
+      //       status: 'success',
+      //       data: 'c_priority_pass_001_xJlF0Q0YUwQ9ReZ3NIEUPr8zGpJo2LtVMBWW_MSeEqA'
+      //     },
+      //     reqKey: 'tWqXstwGvyiLWEKAm_rNSVK1U2w7xLi_-eb9sAKr-0M',
+      //     logs: 'Ek8Mf5q1wY1QLKdRbeydmW6lSX31rgEnktcY7lVG6bc',
+      //     events: [
+      //       {
+      //         params: [
+      //           'k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf', 'k:db776793be0fcf8e76c75bdb35a36e67f298111dc6145c66693b0133192e2616',
+      //           0.0000355
+      //         ],
+      //         name: 'TRANSFER',
+      //         module: { namespace: null, name: 'coin' },
+      //         moduleHash: 'klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s'
+      //       },
+      //       {
+      //         params: [],
+      //         name: 'CREATE-COLLECTION',
+      //         module: { namespace: 'free', name: 'kmpasstest002' },
+      //         moduleHash: 'H2O5imRX2on4mHXmQL3eP8-XWPLGZhaFTIIpO98mvYg'
+      //       },
+      //       {
+      //         params: [
+      //           'c_priority_pass_001_xJlF0Q0YUwQ9ReZ3NIEUPr8zGpJo2LtVMBWW_MSeEqA', 'priority_pass_001',
+      //           { int: 50 },
+      //           'k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf'
+      //         ],
+      //         name: 'CREATE-COLLECTION',
+      //         module: {
+      //           namespace: 'n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db',
+      //           name: 'policy-collection'
+      //         },
+      //         moduleHash: 'OOsTKpL4F85MH-rq_kFvn3bZ4id-pJMP5ZSUrZTF46E'
+      //       },
+      //       {
+      //         params: [
+      //           'priority_pass_001', { int: 50 },
+      //           {
+      //             pred: 'keys-all',
+      //             keys: [
+      //               '56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf'
+      //             ]
+      //           },
+      //           'k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf'
+      //         ],
+      //         name: 'COLLECTION_CREATED',
+      //         module: { namespace: 'free', name: 'kmpasstest002' },
+      //         moduleHash: 'H2O5imRX2on4mHXmQL3eP8-XWPLGZhaFTIIpO98mvYg'
+      //       }
+      //     ],
+      //     metaData: {
+      //       blockTime: 1722771412171163,
+      //       prevBlockHash: 'xxwa4ZEo3WPAr8crm6noo_NqNaK9p52JOq_7kGhjaro',
+      //       blockHash: '2adjZt13Lp_kpvMg-CEHQj6_D4_mmITXJugHYA4K4U0',
+      //       blockHeight: 4526080
+      //     },
+      //     continuation: null,
+      //     txId: 6330953
+      //   }
+      // }
 
       if (result.data) {
+        const resultApi = await createCollectionRequest(
+          data.totalSupply,
+          data.creator,
+          data.mintPrice,
+          uris,
+          data.policy,
+          user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName,
+          data.collectionCoverImage,
+          data.collectionBannerImage
+        );
+
+        console.log("🚀 ~ onSubmit ~ result", resultApi);
+
         Swal.fire({
           icon: "success",
           title: "Success",
@@ -304,242 +395,277 @@ return;
     }
   };
 
+  const handleRemoveImage = (type) => {
+    if (type === "banner") {
+      setBannerPreview(null);
+      setValue("collectionBannerImage", "");
+    } else {
+      setCoverPreview(null);
+      setValue("collectionCoverImage", "");
+    }
+  }
+  
+
   return (
     <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
-    <Typography variant="h4" gutterBottom align="center">
-      Create Priority Pass Collection
-    </Typography>
-    <form onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="totalSupply"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Total Supply"
-                variant="outlined"
-                fullWidth
-                error={!!errors.totalSupply}
-                helperText={errors.totalSupply?.message}
-                disabled
-              />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="creator"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Creator"
-                variant="outlined"
-                fullWidth
-                error={!!errors.creator}
-                helperText={errors.creator?.message}
-                onChange={(e) => {
-                  field.onChange(e);
-                  trigger("creator");
-                }}
-              />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="mintPrice"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="Mint Price"
-                variant="outlined"
-                fullWidth
-                error={!!errors.mintPrice}
-                helperText={errors.mintPrice?.message}
-                onChange={(e) => {
-                  field.onChange(e);
-                  trigger("mintPrice");
-                }}
-              />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.policy}>
-            <InputLabel id="policy-label">Policy</InputLabel>
+      <Typography variant="h4" gutterBottom align="center">
+        Create Priority Pass Collection
+      </Typography>
+      <form onSubmit={handleSubmit(onSubmit)}>
+        <Grid container spacing={3}>
+          <Grid item xs={12} md={6}>
             <Controller
-              name="policy"
+              name="totalSupply"
               control={control}
-              render={({ field: { value, onChange } }) => (
-                <Select
-                  labelId="policy-label"
-                  multiple
-                  value={value}
-                  onChange={(e) => {
-                    onChange(e);
-                    trigger("policy");
-                  }}
-                  input={<OutlinedInput label="Policy" />}
-                  renderValue={(selected) => (
-                    <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
-                      {selected.map((value) => (
-                        <Chip key={value} label={value} />
-                      ))}
-                    </Box>
-                  )}
-                >
-                  {policies.map((policy) => (
-                    <MenuItem key={policy} value={policy}>
-                      {policy}
-                    </MenuItem>
-                  ))}
-                </Select>
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Total Supply"
+                  variant="outlined"
+                  fullWidth
+                  error={!!errors.totalSupply}
+                  helperText={errors.totalSupply?.message}
+                  disabled
+                />
               )}
             />
-            {errors.policy && (
-              <FormHelperText>{errors.policy.message}</FormHelperText>
-            )}
-          </FormControl>
-        </Grid>
-        <Grid item xs={12}>
-          <Controller
-            name="collectionRequestUriList"
-            control={control}
-            render={({ field }) => (
-              <TextField
-                {...field}
-                label="URI List"
-                variant="outlined"
-                fullWidth
-                multiline
-                rows={4}
-                error={!!errors.collectionRequestUriList}
-                helperText={errors.collectionRequestUriList?.message}
-                placeholder='Example: "https://example.com/1","https://example.com/2","https://example.com/3"'
-                onChange={(e) => {
-                  field.onChange(e);
-                  trigger("collectionRequestUriList");
-                }}
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="creator"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Creator"
+                  variant="outlined"
+                  fullWidth
+                  error={!!errors.creator}
+                  helperText={errors.creator?.message}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    trigger("creator");
+                  }}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="mintPrice"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="Mint Price"
+                  variant="outlined"
+                  fullWidth
+                  error={!!errors.mintPrice}
+                  helperText={errors.mintPrice?.message}
+                  onChange={(e) => {
+                    field.onChange(e);
+                    trigger("mintPrice");
+                  }}
+                />
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.policy}>
+              <InputLabel id="policy-label">Policy</InputLabel>
+              <Controller
+                name="policy"
+                control={control}
+                render={({ field: { value, onChange } }) => (
+                  <Select
+                    labelId="policy-label"
+                    multiple
+                    value={value}
+                    onChange={(e) => {
+                      onChange(e);
+                      trigger("policy");
+                    }}
+                    input={<OutlinedInput label="Policy" />}
+                    renderValue={(selected) => (
+                      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 0.5 }}>
+                        {selected.map((value) => (
+                          <Chip key={value} label={value} />
+                        ))}
+                      </Box>
+                    )}
+                  >
+                    {policies.map((policy) => (
+                      <MenuItem key={policy} value={policy}>
+                        {policy}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
               />
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="collectionBannerImage"
-            control={control}
-            render={({ field }) => (
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={bannerPreview || "https://via.placeholder.com/400x140?text=Banner+Image"}
-                  alt="Banner Preview"
+              {errors.policy && (
+                <FormHelperText>{errors.policy.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Grid item xs={12}>
+            <Controller
+              name="collectionRequestUriList"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="URI List"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  error={!!errors.collectionRequestUriList}
+                  helperText={errors.collectionRequestUriList?.message}
+                  placeholder='Example: "https://example.com/1","https://example.com/2","https://example.com/3"'
+                  onChange={(e) => {
+                    field.onChange(e);
+                    trigger("collectionRequestUriList");
+                  }}
                 />
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-                  <input
-                    accept="image/*"
-                    type="file"
-                    id="banner-image-upload"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        handleImageUpload(file, "banner");
-                      }
-                    }}
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="collectionBannerImage"
+              control={control}
+              render={({ field }) => (
+                <Card>
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={
+                      bannerPreview ||
+                      "https://via.placeholder.com/400x140?text=Banner+Image"
+                    }
+                    alt="Banner Preview"
                   />
-                  <label htmlFor="banner-image-upload">
-                    <Button
-                      variant="contained"
-                      component="span"
-                      startIcon={<CloudUploadIcon />}
-                    >
-                      Upload Banner
-                    </Button>
-                  </label>
-                  {bannerPreview && (
-                    <IconButton onClick={() => handleRemoveImage('banner')} color="error">
-                      <DeleteIcon />
-                    </IconButton>
-                  )}
-                </Box>
-                {errors.collectionBannerImage && (
-                  <FormHelperText error>
-                    {errors.collectionBannerImage.message}
-                  </FormHelperText>
-                )}
-              </Card>
-            )}
-          />
-        </Grid>
-        <Grid item xs={12} md={6}>
-          <Controller
-            name="collectionCoverImage"
-            control={control}
-            render={({ field }) => (
-              <Card>
-                <CardMedia
-                  component="img"
-                  height="140"
-                  image={coverPreview || "https://via.placeholder.com/400x140?text=Cover+Image"}
-                  alt="Cover Preview"
-                />
-                <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between' }}>
-                  <input
-                    accept="image/*"
-                    type="file"
-                    id="cover-image-upload"
-                    style={{ display: "none" }}
-                    onChange={(e) => {
-                      const file = e.target.files[0];
-                      if (file) {
-                        handleImageUpload(file, "cover");
-                      }
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
                     }}
-                  />
-                  <label htmlFor="cover-image-upload">
-                    <Button
-                      variant="contained"
-                      component="span"
-                      startIcon={<CloudUploadIcon />}
-                    >
-                      Upload Cover
-                    </Button>
-                  </label>
-                  {coverPreview && (
-                    <IconButton onClick={() => handleRemoveImage('cover')} color="error">
-                      <DeleteIcon />
-                    </IconButton>
+                  >
+                    <input
+                      accept="image/*"
+                      type="file"
+                      id="banner-image-upload"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handleImageUpload(file, "banner");
+                        }
+                      }}
+                    />
+                    <label htmlFor="banner-image-upload">
+                      <Button
+                        variant="contained"
+                        component="span"
+                        startIcon={<CloudUploadIcon />}
+                      >
+                        Upload Banner
+                      </Button>
+                    </label>
+                    {bannerPreview && (
+                      <IconButton
+                        onClick={() => handleRemoveImage("banner")}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+                  {errors.collectionBannerImage && (
+                    <FormHelperText error>
+                      {errors.collectionBannerImage.message}
+                    </FormHelperText>
                   )}
-                </Box>
-                {errors.collectionCoverImage && (
-                  <FormHelperText error>
-                    {errors.collectionCoverImage.message}
-                  </FormHelperText>
-                )}
-              </Card>
-            )}
-          />
+                </Card>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Controller
+              name="collectionCoverImage"
+              control={control}
+              render={({ field }) => (
+                <Card>
+                  <CardMedia
+                    component="img"
+                    height="140"
+                    image={
+                      coverPreview ||
+                      "https://via.placeholder.com/400x140?text=Cover+Image"
+                    }
+                    alt="Cover Preview"
+                  />
+                  <Box
+                    sx={{
+                      p: 2,
+                      display: "flex",
+                      justifyContent: "space-between",
+                    }}
+                  >
+                    <input
+                      accept="image/*"
+                      type="file"
+                      id="cover-image-upload"
+                      style={{ display: "none" }}
+                      onChange={(e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                          handleImageUpload(file, "cover");
+                        }
+                      }}
+                    />
+                    <label htmlFor="cover-image-upload">
+                      <Button
+                        variant="contained"
+                        component="span"
+                        startIcon={<CloudUploadIcon />}
+                      >
+                        Upload Cover
+                      </Button>
+                    </label>
+                    {coverPreview && (
+                      <IconButton
+                        onClick={() => handleRemoveImage("cover")}
+                        color="error"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    )}
+                  </Box>
+                  {errors.collectionCoverImage && (
+                    <FormHelperText error>
+                      {errors.collectionCoverImage.message}
+                    </FormHelperText>
+                  )}
+                </Card>
+              )}
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
+              size="large"
+              fullWidth
+            >
+              Create Collection
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item xs={12}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            size="large"
-            fullWidth
-          >
-            Create Collection
-          </Button>
-        </Grid>
-      </Grid>
-    </form>
-  </Paper>
+      </form>
+    </Paper>
   );
 };
 

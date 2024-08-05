@@ -1,24 +1,13 @@
-import { createContext, useEffect, useReducer } from "react";
-import axios from "axios";
-import {
-  createClient,
-  Pact,
-  createSignWithChainweaver,
-  createEckoWalletQuicksign,
-  signWithChainweaver,
-} from "@kadena/client"; // CUSTOM COMPONENT
+import { Pact, createClient } from "@kadena/client"; // CUSTOM COMPONENT
 import { MatLoading } from "app/components";
+import axios from "axios";
+import { NETWORK } from "../../constants/contextConstants";
+import { createContext, useEffect, useReducer } from "react";
 import userServices from "services/userServices.tsx";
 const url = "http://localhost:5000/api/v1";
 const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
 console.log(NETWORKID, "NETWORKID");
 
-import {
-  CHAIN_ID,
-  GAS_PRICE,
-  NETWORK,
-  creationTime,
-} from "../../constants/contextConstants";
 const API_HOST = NETWORK;
 const client = createClient(API_HOST);
 const initialState = {
@@ -61,7 +50,6 @@ const AuthContext = createContext({
   register: () => {},
   superlogin: () => {},
   chainweaverConnect: () => {},
-
 });
 
 export const AuthProvider = ({ children }) => {
@@ -383,7 +371,15 @@ export const AuthProvider = ({ children }) => {
 
   return (
     <AuthContext.Provider
-      value={{ ...state, method: "JWT", login, superlogin, logout, register, chainweaverConnect }}
+      value={{
+        ...state,
+        method: "JWT",
+        login,
+        superlogin,
+        logout,
+        register,
+        chainweaverConnect,
+      }}
     >
       {children}
     </AuthContext.Provider>
