@@ -62,6 +62,124 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
             ? "CW"
             : user?.walletName,
       });
+
+    //   {
+    //     "gas": 4756,
+    //     "result": {
+    //         "status": "success",
+    //         "data": [
+    //             "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc"
+    //         ]
+    //     },
+    //     "reqKey": "WjrHQ3EqVjd1eC1JkpuSvRq8ad-5jk54UsjE8v4nRes",
+    //     "logs": "xunkhU3YmU31C3zifXAI9RoFuvZhU4cOAy7-wnH2Vlo",
+    //     "events": [
+    //         {
+    //             "params": [
+    //                 "k:d1d47937b0ec42efa859048d0fb5f51707639ddad991e58ae9efcff5f4ff9dbe",
+    //                 "k:db776793be0fcf8e76c75bdb35a36e67f298111dc6145c66693b0133192e2616",
+    //                 0.00004756
+    //             ],
+    //             "name": "TRANSFER",
+    //             "module": {
+    //                 "namespace": null,
+    //                 "name": "coin"
+    //             },
+    //             "moduleHash": "klFkrLfpyLW-M3xjVPSdqXEMgxPPJibRt_D6qiBws6s"
+    //         },
+    //         {
+    //             "params": [
+    //                 "c_monkeyaz14_Qn1d3vjQIbMqXlQclpaqbQ3eV0qkgmYkiBZj919UwnE",
+    //                 "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc"
+    //             ],
+    //             "name": "ADD-TO-COLLECTION",
+    //             "module": {
+    //                 "namespace": "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+    //                 "name": "policy-collection"
+    //             },
+    //             "moduleHash": "OOsTKpL4F85MH-rq_kFvn3bZ4id-pJMP5ZSUrZTF46E"
+    //         },
+    //         {
+    //             "params": [
+    //                 "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc",
+    //                 "ipfs://QmZkL6KYygEKeWfwSfcKBqXc8SgXJF2qPjczzD7p1x5KmC",
+    //                 {
+    //                     "int": 0
+    //                 },
+    //                 [
+    //                     "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.policy-collection",
+    //                     "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.policy-instant-mint",
+    //                     "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.policy-marketplace",
+    //                     "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.policy-fixed-sale"
+    //                 ]
+    //             ],
+    //             "name": "TOKEN-CREATE",
+    //             "module": {
+    //                 "namespace": "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+    //                 "name": "ledger"
+    //             },
+    //             "moduleHash": "u3XErq-f8U12FRw8T_MdEZo7kOVzoWsowH89HgLzTFU"
+    //         },
+    //         {
+    //             "params": [
+    //                 "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc",
+    //                 "k:d1d47937b0ec42efa859048d0fb5f51707639ddad991e58ae9efcff5f4ff9dbe",
+    //                 1
+    //             ],
+    //             "name": "MINT",
+    //             "module": {
+    //                 "namespace": "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+    //                 "name": "ledger"
+    //             },
+    //             "moduleHash": "u3XErq-f8U12FRw8T_MdEZo7kOVzoWsowH89HgLzTFU"
+    //         },
+    //         {
+    //             "params": [
+    //                 "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc",
+    //                 1
+    //             ],
+    //             "name": "SUPPLY",
+    //             "module": {
+    //                 "namespace": "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+    //                 "name": "ledger"
+    //             },
+    //             "moduleHash": "u3XErq-f8U12FRw8T_MdEZo7kOVzoWsowH89HgLzTFU"
+    //         },
+    //         {
+    //             "params": [
+    //                 "t:xUmWBEXxw7nQ8XCBxibx7PwBwHTfu9LWAx_Z7x0TJJc",
+    //                 1,
+    //                 {
+    //                     "account": "",
+    //                     "current": 0,
+    //                     "previous": 0
+    //                 },
+    //                 {
+    //                     "account": "k:d1d47937b0ec42efa859048d0fb5f51707639ddad991e58ae9efcff5f4ff9dbe",
+    //                     "current": 1,
+    //                     "previous": 0
+    //                 }
+    //             ],
+    //             "name": "RECONCILE",
+    //             "module": {
+    //                 "namespace": "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db",
+    //                 "name": "ledger"
+    //             },
+    //             "moduleHash": "u3XErq-f8U12FRw8T_MdEZo7kOVzoWsowH89HgLzTFU"
+    //         }
+    //     ],
+    //     "metaData": {
+    //         "blockTime": 1722842450152826,
+    //         "prevBlockHash": "U146WmcYUnicF8iCC39DQ7BvqF7KGl-z1T1JCdC0UoU",
+    //         "blockHash": "PZiGN0HVDmXiFOTML6p2oXpoGasODR4PWPe1YSj4hMg",
+    //         "blockHeight": 4528446
+    //     },
+    //     "continuation": null,
+    //     "txId": 6333679
+    // }
+
+
+
       console.log("response", response);
 
       if (response.data.result.status === "success") {
