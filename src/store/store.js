@@ -11,8 +11,6 @@ import {
   REGISTER,
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
-// import launchpadReducer from 'src/features/launchpadSlice';
-// import { launchpadApi } from 'src/services/launchpad.service'
 import { launchpadApi } from "../services/launchpad.service";
 import { priorityPassApi } from "services/prioritypass.service";
 import launchpadReducer from "../features/launchpadSlice";
