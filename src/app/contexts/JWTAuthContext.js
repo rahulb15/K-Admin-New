@@ -4,7 +4,7 @@ import axios from "axios";
 import { NETWORK } from "../../constants/contextConstants";
 import { createContext, useEffect, useReducer } from "react";
 import userServices from "services/userServices.tsx";
-const url = "http://localhost:5000/api/v1";
+const url = process.env.REACT_APP_API_URL;
 const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
 console.log(NETWORKID, "NETWORKID");
 
