@@ -93,7 +93,25 @@ const unRevealedTokensSchema = yup.object().shape({
   unrevealedColName: yup.string().required("Collection name is required"),
 });
 
-const policies = ["COLLECTION", "INSTANT-MINT", "MARKETPLACE", "FIXED-SALE"];
+// const policies = ["COLLECTION", "INSTANT-MINT", "MARKETPLACE", "FIXED-SALE"];
+const policies = [
+  "COLLECTION",
+  "INSTANT-MINT",
+  "MARKETPLACE",
+  "FIXED-SALE",
+  "AUCTION-SALE",
+  "BLACKLIST",
+  "DISABLE-BURN",
+  "DISABLE-TRANSFER",
+  "DISABLE-SALE",
+  "DUTCH-AUCTION-SALE",
+  "EXTRA-POLICIES",
+  "FIXED-ISSUANCE",
+  "GUARDS",
+  "NON-FUNGIBLE",
+  "ROYALTY",
+  "TRUSTED-CUSTODY",
+];
 
 const CreateCollectionForm = (props) => {
   const [bannerPreview, setBannerPreview] = useState(null);
