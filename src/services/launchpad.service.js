@@ -734,6 +734,70 @@ export const launchpadApi = createApi({
         }
       },
     }),
+
+    addRole: builder.mutation({
+      async queryFn(args) {
+        const { role, address, wallet } = args;
+        console.log("Adding role:", role, "to address:", address);
+
+        const account = admin;
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.add-roles "${role}" ["${address}"])`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+            withCapability("free.lptest001.IS_ADMIN"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("addRole transaction:", txn);
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            } else {
+              throw new Error('Unsupported wallet');
+            }
+
+            const response = await signFunction(signedTx);
+            if (response.result.status === "success") {
+              console.log(`Role ${role} successfully added to ${address}`);
+            }
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+
+
+
   }),
 });
 
@@ -749,4 +813,5 @@ export const {
   useSyncWithNgMutation,
   useBalanceMutation,
   useTransferMutation,
+  useAddRoleMutation,
 } = launchpadApi;
