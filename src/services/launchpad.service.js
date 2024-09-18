@@ -18,7 +18,10 @@ const API_HOST = NETWORK;
 const client = createClient(API_HOST);
 const signWithChainweaver = createSignWithChainweaver();
 const eckoWallet = createEckoWalletQuicksign();
-
+const coin_fungible = {
+  refSpec: [{ namespace: null, name: "fungible-v2" }],
+  refName: { namespace: null, name: "coin" },
+};
 const admin =
   "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
 
@@ -77,6 +80,55 @@ const collectionId = async (colNameId) => {
     // alert(`Collection Id: ${colId}`);
     console.log(colId);
     return colId;
+  }
+};
+
+
+const getRoyaltyAddress = async (colName) => {
+  // const colName = "K/C-CW-105";
+  const pactCode = `(free.lptest001.get-royalty-info ${JSON.stringify(colName)} "account")`;
+
+  const transaction = Pact.builder
+    .execution(pactCode)
+    .setMeta({ chainId: "1" })
+    .createTransaction();
+
+  const response = await client.local(transaction, {
+    preflight: false,
+    signatureVerification: false,
+  });
+
+  if (response.result.status == "success") {
+    // alert(`Sale is live`);
+    // console.log(response.result.data);
+    return response.result.data;
+  } else {
+    console.log(response.result.error);
+  }
+};
+
+// const getRoyaltyPerc = async (colName) => {
+const getRoyaltyPerc = async (colName) => {
+  // const colName = "K/C-CW-105";
+
+  const pactCode = `(free.lptest001.get-royalty-info ${JSON.stringify(colName)} "rate")`;
+
+  const transaction = Pact.builder
+    .execution(pactCode)
+    .setMeta({ chainId: "1" })
+    .createTransaction();
+
+  const response = await client.local(transaction, {
+    preflight: false,
+    signatureVerification: false,
+  });
+
+  if (response.result.status == "success") {
+    // alert(`Sale is live`);
+    // console.log(response.result.data);
+    return response.result.data;
+  } else {
+    console.log(response.result.error);
   }
 };
 
@@ -597,8 +649,18 @@ export const launchpadApi = createApi({
         const colId = await collectionId(syncColName);
         const account = await getColCreator(syncColName);
         console.log("account", account);
+
+        const royaltyAddress = await getRoyaltyAddress(syncColName);
+        const royaltyPerc = await getRoyaltyPerc(syncColName);
+    
+        console.log(
+          `royaltyAddress: ${royaltyAddress}, royaltyPerc: ${royaltyPerc}`
+        );
+    
         const publicKey = account.slice(2, account.length);
+        const publicKeyRoyalty = royaltyAddress.slice(2, royaltyAddress.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
+        const guardRoyalty = { keys: [publicKeyRoyalty], pred: "keys-all" };
         const formattedSyncTkns = `[${syncTkns}]`;
 
         // '(free.lptest001.bulk-sync-with-ng "monkeyaz9" [1 2])'
@@ -610,22 +672,56 @@ export const launchpadApi = createApi({
 
         console.log(pactCode);
 
-        const txn = Pact.builder
-          .execution(pactCode)
-          .addData("guard", guard)
-          .addData("marmalade_collection", { id: colId })
-          .addSigner(publicKey)
-          .setMeta({
-            creationTime: creationTime(),
-            sender: account,
-            gasLimit: 150000,
-            chainId: CHAIN_ID,
-            ttl: 28800,
-          })
-          .setNetworkId(NETWORKID)
-          .createTransaction();
+        let txn;
 
+        if (royaltyAddress != "" && royaltyPerc > 0.0 && royaltyPerc <= 1.0) {
+          txn = Pact.builder
+            .execution(pactCode)
+            .addData("guard", guard)
+            .addData("marmalade_collection", { id: colId })
+            .addData("marmalade_royalty", {
+              creator_acct: royaltyAddress,
+              creator_guard: guardRoyalty,
+              rate: royaltyPerc,
+              currencies: [coin_fungible],
+            })
+            .addSigner(publicKey)
+            // .addSigner(publicKey, (withCapability) => [
+            //   withCapability("coin.GAS"),
+            //   withCapability("free.lptest001.MINTPROCESS", syncColName),
+            // ])
+            .setMeta({
+              creationTime: creationTime(),
+              sender: account,
+              gasLimit: 150000,
+              chainId: CHAIN_ID,
+              ttl: 28800,
+            })
+            .setNetworkId(NETWORKID)
+            .createTransaction();
+        } else {
+          txn = Pact.builder
+            .execution(pactCode)
+            .addData("guard", guard)
+            .addData("marmalade_collection", { id: colId })
+            .addSigner(publicKey)
+            // .addSigner(publicKey, (withCapability) => [
+            //   withCapability("coin.GAS"),
+            //   withCapability("free.lptest001.MINTPROCESS", syncColName),
+            // ])
+            .setMeta({
+              creationTime: creationTime(),
+              sender: account,
+              gasLimit: 150000,
+              chainId: CHAIN_ID,
+              ttl: 28800,
+            })
+            .setNetworkId(NETWORKID)
+            .createTransaction();
+        }
+    
         console.log("syncWithNg", txn);
+        console.log("sign");
 
         try {
           const localResponse = await client.local(txn, {
