@@ -238,7 +238,9 @@ export const priorityPassApi = createApi({
         console.log("args", args);
 
         const { syncTkns } = args;
+        console.log("syncTkns", syncTkns);
         const colId = await collection_id();
+        console.log(colId);
         const account = admin;
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
