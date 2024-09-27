@@ -232,7 +232,7 @@ export default function TopSellingTable(props) {
           // }
 
           paymentServices
-          .approveDeposit(row.transaction._id, row?.address)
+          .approveDeposit(row._id, row?.address)
           .then((response) => {
             console.log(response);
             Swal.fire({

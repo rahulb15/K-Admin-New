@@ -1,0 +1,216 @@
+import React, { useState, useEffect } from "react";
+import { useForm, Controller } from "react-hook-form";
+import {
+  Button,
+  TextField,
+  Checkbox,
+  FormControlLabel,
+  FormGroup,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
+import useAuth from "app/hooks/useAuth";
+import { useSelector, useDispatch } from "react-redux";
+import { yupResolver } from "@hookform/resolvers/yup";
+import * as yup from "yup";
+import Swal from "sweetalert2";
+import { setRefresh } from "features/refreshSlice";
+import { setModalOpen } from "features/launchpadModalActionSlice";
+import {
+  useAddPoliciesMutation,
+  useReplacePoliciesMutation,
+} from "services/launchpad.service";
+
+const policyList = [
+  "INSTANT-MINT",
+  "NON-FUNGIBLE",
+  "COLLECTION",
+  "ROYALTY",
+  "ADJUSTABLE-ROYALTY",
+  "DISABLE-BURN",
+  "FIXED-SALE",
+  "MARKETPLACE",
+  "AUCTION-SALE",
+  "DUTCH-AUCTION-SALE",
+];
+
+const schema = yup.object().shape({
+  collectionName: yup.string().required("Collection name is required"),
+  policies: yup
+    .array()
+    .of(yup.string())
+    .min(1, "At least one policy must be selected"),
+});
+
+const PolicyManagementForm = () => {
+  const {
+    control,
+    handleSubmit,
+    setValue,
+    watch,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      collectionName: "",
+      policies: [],
+    },
+  });
+  const dispatch = useDispatch();
+  const selection = useSelector(
+    (state) => state?.selectionLaunchpad?.selection
+  );
+  const [action, setAction] = useState("add");
+  const [addPolicies, { isLoading: isAddLoading, error: addError }] = useAddPoliciesMutation();
+  const [replacePolicies, { isLoading: isReplaceLoading, error: replaceError }] = useReplacePoliciesMutation();
+  const { user } = useAuth();
+
+  useEffect(() => {
+    if (selection?.collectionName) {
+      setValue("collectionName", selection.collectionName);
+    }
+    if (selection?.policy && Array.isArray(selection.policy) && selection.policy.length > 0) {
+      const policyString = selection.policy[0];
+      const selectedPolicies = policyString.split(' ').filter(policy => policyList.includes(policy));
+      setValue("policies", selectedPolicies);
+    }
+  }, [selection, setValue]);
+
+  const onSubmit = async (data) => {
+    const collectionRequestPolicy = data.policies.join(" ");
+    console.log("collectionRequestPolicy", collectionRequestPolicy);
+    try {
+      let result;
+      if (action === "add") {
+        result = await addPolicies({
+          collectionName: data.collectionName,
+          collectionRequestPolicy,
+          wallet: user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName
+        });
+      } else {
+        result = await replacePolicies({
+          collectionName: data.collectionName,
+          collectionRequestPolicy,
+          wallet: user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName
+        });
+      }
+
+      if (result.data?.result?.status === "success") {
+        Swal.fire({
+          icon: "success",
+          title: "Success",
+          text: `Policies ${
+            action === "add" ? "added" : "replaced"
+          } successfully`,
+        });
+        dispatch(setRefresh(true));
+        dispatch(setModalOpen(false));
+      } else {
+        throw new Error(result.error?.data?.result?.error?.message || "An error occurred");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `Error ${action === "add" ? "adding" : "replacing"} policies: ${
+          error.message
+        }`,
+      });
+    }
+  };
+
+  const watchPolicies = watch("policies");
+  const isLoading = isAddLoading || isReplaceLoading;
+  const error = addError || replaceError;
+
+  return (
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Controller
+        name="collectionName"
+        control={control}
+        render={({ field }) => (
+          <TextField
+            {...field}
+            label="Collection Name"
+            fullWidth
+            margin="normal"
+            error={!!errors.collectionName}
+            helperText={errors.collectionName?.message}
+            disabled={true}
+          />
+        )}
+      />
+      <Typography variant="subtitle1" gutterBottom>
+        Select Policies:
+      </Typography>
+      <FormGroup>
+        {policyList.map((policy) => (
+          <FormControlLabel
+            key={policy}
+            control={
+              <Controller
+                name="policies"
+                control={control}
+                render={({ field }) => (
+                  <Checkbox
+                    {...field}
+                    checked={field.value.includes(policy)}
+                    onChange={(e) => {
+                      const updatedPolicies = e.target.checked
+                        ? [...field.value, policy]
+                        : field.value.filter((val) => val !== policy);
+                      field.onChange(updatedPolicies);
+                    }}
+                    disabled={isLoading}
+                  />
+                )}
+              />
+            }
+            label={policy}
+          />
+        ))}
+      </FormGroup>
+      {errors.policies && (
+        <Typography color="error">{errors.policies.message}</Typography>
+      )}
+      {error && (
+        <Typography color="error">
+          {error?.data?.result?.error?.message || "An error occurred"}
+        </Typography>
+      )}
+      <Box mt={2}>
+        <Button
+          variant="contained"
+          color="primary"
+          onClick={() => setAction("add")}
+          type="submit"
+          sx={{ mr: 1 }}
+          disabled={isLoading}
+        >
+          {isLoading && action === "add" ? <CircularProgress size={24} /> : "Add Policies"}
+        </Button>
+        <Button
+          variant="contained"
+          color="secondary"
+          onClick={() => setAction("replace")}
+          type="submit"
+          disabled={isLoading}
+        >
+          {isLoading && action === "replace" ? <CircularProgress size={24} /> : "Replace Policies"}
+        </Button>
+      </Box>
+    </form>
+  );
+};
+
+export default PolicyManagementForm;

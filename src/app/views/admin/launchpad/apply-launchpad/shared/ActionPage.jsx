@@ -6,6 +6,7 @@ import {
   CreateNGCollectionForm,
   UnrevealedTokensForm,
 } from "./Forms"; // Import forms
+import PolicyManagementForm from "./PolicyForm";
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import launchapadServices from "services/launchapadServices.tsx";
@@ -170,6 +171,22 @@ const MintAndLaunch = () => {
             </Stack>
           </Stack>
         </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Policy Management
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("policyManagement")}
+              >
+                Manage Policies
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid>
       </Grid>
 
       <Modal open={launchpadModalAction} onClose={handleClose}>
@@ -178,6 +195,7 @@ const MintAndLaunch = () => {
           {formType === "whitelist" && <WhitelistForm />}
           {formType === "createNgCollection" && <CreateNGCollectionForm />}
           {formType === "unrevealedTokens" && <UnrevealedTokensForm />}
+          {formType === "policyManagement" && <PolicyManagementForm />}
         </Box>
       </Modal>
     </Box>

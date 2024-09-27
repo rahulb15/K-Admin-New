@@ -891,6 +891,109 @@ export const launchpadApi = createApi({
       },
     }),
 
+    addPolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, collectionRequestPolicy, wallet } = args;
+        console.log("addPolicies args:", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.add-policies ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+    replacePolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, collectionRequestPolicy, wallet } = args;
+        console.log("replacePolicies args:", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.replace-policies ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+
 
 
 
@@ -910,4 +1013,6 @@ export const {
   useBalanceMutation,
   useTransferMutation,
   useAddRoleMutation,
+  useAddPoliciesMutation,
+  useReplacePoliciesMutation,
 } = launchpadApi;
