@@ -23,8 +23,6 @@ import {
   useGetPoliciesMutation,
 } from "services/prioritypass.service";
 
-
-
 // * "INSTANT-MINT NON-FUNGIBLE COLLECTION DISABLE-BURN DISABLE-TRANSFER DISABLE-SALE"
 const policyList = [
   "INSTANT-MINT",
@@ -63,50 +61,60 @@ const PolicyManagementForm = () => {
   );
   console.log("selection", selection);
   const [action, setAction] = useState("add");
-  const [addPolicies, { isLoading: isAddLoading, error: addError }] = useAddPoliciesMutation();
-  const [replacePolicies, { isLoading: isReplaceLoading, error: replaceError }] = useReplacePoliciesMutation();
-  const [getPolicies, { isLoading: isGetLoading, error: getError }] = useGetPoliciesMutation();
+  const [addPolicies, { isLoading: isAddLoading, error: addError }] =
+    useAddPoliciesMutation();
+  const [
+    replacePolicies,
+    { isLoading: isReplaceLoading, error: replaceError },
+  ] = useReplacePoliciesMutation();
+  const [getPolicies, { isLoading: isGetLoading, error: getError }] =
+    useGetPoliciesMutation();
   const { user } = useAuth();
   const [isLoadingPolicies, setIsLoadingPolicies] = useState(false);
 
   useEffect(() => {
     const fetchPolicies = async () => {
       // if (selection?.collectionName) {
-        // setValue("collectionName", selection.collectionName);
-        setIsLoadingPolicies(true);
-        try {
-          const result = await getPolicies({
-            collectionName: selection?.collectionName || "priority_pass_006"
-          });
-          
-          console.log("Result from getPolicies:", result);
+      // setValue("collectionName", selection.collectionName);
+      setIsLoadingPolicies(true);
+      try {
+        const result = await getPolicies({
+          collectionName: selection?.collectionName || "priority_pass_006",
+        });
 
-          if (result.data) {
-            const policiesString = result.data;
-            console.log("Policies string:", policiesString);
-            
-            if (typeof policiesString === 'string') {
-              const policiesArray = policiesString.split(' ').filter(policy => policyList.includes(policy));
-              console.log("Filtered policies array:", policiesArray);
-              setValue("policies", policiesArray);
-            } else {
-              console.error("Unexpected policies data type:", typeof policiesString);
-            }
-          } else if (result.error) {
-            throw new Error(result.error.message);
+        console.log("Result from getPolicies:", result);
+
+        if (result.data) {
+          const policiesString = result.data;
+          console.log("Policies string:", policiesString);
+
+          if (typeof policiesString === "string") {
+            const policiesArray = policiesString
+              .split(" ")
+              .filter((policy) => policyList.includes(policy));
+            console.log("Filtered policies array:", policiesArray);
+            setValue("policies", policiesArray);
           } else {
-            console.error("Unexpected result structure:", result);
+            console.error(
+              "Unexpected policies data type:",
+              typeof policiesString
+            );
           }
-        } catch (error) {
-          console.error("Error fetching policies:", error);
-          Swal.fire({
-            icon: "error",
-            title: "Error",
-            text: `Failed to fetch policies: ${error.message}`,
-          });
-        } finally {
-          setIsLoadingPolicies(false);
+        } else if (result.error) {
+          throw new Error(result.error.message);
+        } else {
+          console.error("Unexpected result structure:", result);
         }
+      } catch (error) {
+        console.error("Error fetching policies:", error);
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `Failed to fetch policies: ${error.message}`,
+        });
+      } finally {
+        setIsLoadingPolicies(false);
+      }
       // }
     };
 
@@ -120,21 +128,23 @@ const PolicyManagementForm = () => {
         result = await addPolicies({
           collectionName: data.collectionName,
           collectionRequestPolicy,
-          wallet: user?.walletName === "Ecko Wallet"
-            ? "ecko"
-            : user?.walletName === "Chainweaver"
-            ? "CW"
-            : user?.walletName
+          wallet:
+            user?.walletName === "Ecko Wallet"
+              ? "ecko"
+              : user?.walletName === "Chainweaver"
+              ? "CW"
+              : user?.walletName,
         }).unwrap();
       } else {
         result = await replacePolicies({
           collectionName: data.collectionName,
           collectionRequestPolicy,
-          wallet: user?.walletName === "Ecko Wallet"
-            ? "ecko"
-            : user?.walletName === "Chainweaver"
-            ? "CW"
-            : user?.walletName
+          wallet:
+            user?.walletName === "Ecko Wallet"
+              ? "ecko"
+              : user?.walletName === "Chainweaver"
+              ? "CW"
+              : user?.walletName,
         }).unwrap();
       }
 
@@ -142,7 +152,9 @@ const PolicyManagementForm = () => {
         Swal.fire({
           icon: "success",
           title: "Success",
-          text: `Policies ${action === "add" ? "added" : "replaced"} successfully`,
+          text: `Policies ${
+            action === "add" ? "added" : "replaced"
+          } successfully`,
         });
         dispatch(setRefresh(true));
         dispatch(setModalOpen(false));
@@ -167,7 +179,12 @@ const PolicyManagementForm = () => {
 
   if (isLoadingPolicies) {
     return (
-      <Box display="flex" justifyContent="center" alignItems="center" height="200px">
+      <Box
+        display="flex"
+        justifyContent="center"
+        alignItems="center"
+        height="200px"
+      >
         <CircularProgress />
       </Box>
     );
@@ -237,7 +254,11 @@ const PolicyManagementForm = () => {
           sx={{ mr: 1 }}
           disabled={isLoading}
         >
-          {isLoading && action === "add" ? <CircularProgress size={24} /> : "Add Policies"}
+          {isLoading && action === "add" ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Add Policies"
+          )}
         </Button>
         <Button
           variant="contained"
@@ -246,7 +267,11 @@ const PolicyManagementForm = () => {
           type="submit"
           disabled={isLoading}
         >
-          {isLoading && action === "replace" ? <CircularProgress size={24} /> : "Replace Policies"}
+          {isLoading && action === "replace" ? (
+            <CircularProgress size={24} />
+          ) : (
+            "Replace Policies"
+          )}
         </Button>
       </Box>
     </form>

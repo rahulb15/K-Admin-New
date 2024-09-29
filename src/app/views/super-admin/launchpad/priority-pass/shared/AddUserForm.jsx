@@ -1,6 +1,12 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Button, TextField, Typography, Box, CircularProgress } from "@mui/material";
+import {
+  Button,
+  TextField,
+  Typography,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 import { useSelector, useDispatch } from "react-redux";
 import { yupResolver } from "@hookform/resolvers/yup";
 import * as yup from "yup";
@@ -16,15 +22,19 @@ const schema = yup.object().shape({
     .required("Users are required")
     .test("valid-addresses", "Invalid address format", function (value) {
       if (!value) return true; // This is handled by the required check
-      const addresses = value.split(',').map(addr => addr.trim());
+      const addresses = value.split(",").map((addr) => addr.trim());
       const validAddressRegex = /^k:[a-zA-Z0-9]{64}$/; // Adjust this regex as needed for your specific address format
-      return addresses.every(addr => validAddressRegex.test(addr));
+      return addresses.every((addr) => validAddressRegex.test(addr));
     })
-    .test("unique-addresses", "Duplicate addresses are not allowed", function (value) {
-      if (!value) return true;
-      const addresses = value.split(',').map(addr => addr.trim());
-      return new Set(addresses).size === addresses.length;
-    }),
+    .test(
+      "unique-addresses",
+      "Duplicate addresses are not allowed",
+      function (value) {
+        if (!value) return true;
+        const addresses = value.split(",").map((addr) => addr.trim());
+        return new Set(addresses).size === addresses.length;
+      }
+    ),
 });
 
 const AddUserForm = () => {
@@ -43,16 +53,17 @@ const AddUserForm = () => {
   const { user } = useAuth();
 
   const onSubmit = async (data) => {
-    const priorityUsers = data.users.split(',').map(user => user.trim());
+    const priorityUsers = data.users.split(",").map((user) => user.trim());
     try {
       const result = await addPassUser({
         priorityUsers,
         admin: user?.walletAddress,
-        wallet: user?.walletName === "Ecko Wallet"
-          ? "ecko"
-          : user?.walletName === "Chainweaver"
-          ? "CW"
-          : user?.walletName
+        wallet:
+          user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName,
       }).unwrap();
 
       console.log("result", result);
@@ -90,7 +101,10 @@ const AddUserForm = () => {
             fullWidth
             margin="normal"
             error={!!errors.users}
-            helperText={errors.users?.message || "Enter comma-separated user addresses (e.g., k:abc123..., k:def456...)"}
+            helperText={
+              errors.users?.message ||
+              "Enter comma-separated user addresses (e.g., k:abc123..., k:def456...)"
+            }
             multiline
             rows={4}
           />

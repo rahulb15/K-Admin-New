@@ -56,7 +56,7 @@ const MintAndLaunch = () => {
     };
 
     getLaunchpadById(selection?._id);
-  }, [refresh,launchpadModalAction ]);
+  }, [refresh, launchpadModalAction]);
 
   const handleOpen = (type) => {
     setFormType(type);

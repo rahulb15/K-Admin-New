@@ -983,7 +983,7 @@ export const launchpadApi = createApi({
             }
 
             const response = await signFunction(signedTx);
-            return { data: response };
+            return { data: response.result };
           } else {
             return { error: localResponse.result.error };
           }
@@ -1071,8 +1071,8 @@ export const launchpadApi = createApi({
             }
 
             const response = await signFunction(signedTx);
-            
-            return { data: response };
+
+            return { data: response.result };
           } else {
             return { error: localResponse.result.error };
           }

@@ -58,16 +58,15 @@ export default function ApplyLaunchpad() {
 
   useEffect(() => {
     // if (user?.role === "superadmin") {
-      launchapadServices
-        .getAllApproved(page, limit, search)
-        .then((response) => {
-          setData(response.data[0].data);
-        })
-        .catch((error) => {
-          console.log(error);
-        });
+    launchapadServices
+      .getAllApproved(page, limit, search)
+      .then((response) => {
+        setData(response.data[0].data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
     // } else if (user?.role === "admin") {
-
 
     // }
   }, [page, limit, search, refresh]);

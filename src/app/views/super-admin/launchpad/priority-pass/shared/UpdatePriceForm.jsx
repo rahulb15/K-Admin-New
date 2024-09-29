@@ -14,12 +14,13 @@ import * as yup from "yup";
 import Swal from "sweetalert2";
 import { setRefresh } from "features/refreshSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
-import {
-  useUpdatePriceMutation,
-} from "services/prioritypass.service";
+import { useUpdatePriceMutation } from "services/prioritypass.service";
 
 const schema = yup.object().shape({
-  price: yup.number().positive("Price must be positive").required("Price is required"),
+  price: yup
+    .number()
+    .positive("Price must be positive")
+    .required("Price is required"),
 });
 
 const UpdatePriceForm = () => {
@@ -41,11 +42,12 @@ const UpdatePriceForm = () => {
     try {
       const result = await updatePrice({
         price: parseFloat(data.price),
-        wallet: user?.walletName === "Ecko Wallet"
-          ? "ecko"
-          : user?.walletName === "Chainweaver"
-          ? "CW"
-          : user?.walletName
+        wallet:
+          user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName,
       }).unwrap();
 
       if (result?.status === "success") {

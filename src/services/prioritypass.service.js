@@ -22,6 +22,31 @@ const eckoWallet = createEckoWalletQuicksign();
 const admin =
   "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
 
+  const getColCreator = async (colName) => {
+    console.log("colName", colName);
+    const pactCode = `(free.lptest001.get-collection-creator ${JSON.stringify(
+      colName
+    )})`;
+  
+    const transaction = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: "1" })
+      .createTransaction();
+  
+    const response = await client.local(transaction, {
+      preflight: false,
+      signatureVerification: false,
+    });
+  
+    if (response.result.status == "success") {
+      // alert(`Sale is live`);
+      console.log(response.result.data);
+      return response.result.data;
+    } else {
+      alert(`CHECK CONSOLE`);
+    }
+  };
+
 const signFunction = async (signedTx) => {
   const transactionDescriptor = await client.submit(signedTx);
   console.log("transactionDescriptor", transactionDescriptor);
@@ -394,7 +419,7 @@ export const priorityPassApi = createApi({
             }
 
             const response = await signFunction(signedTx);
-            return { data: response };
+            return { data: response.result };
           } else {
             return { error: localResponse.result.error };
           }

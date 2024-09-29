@@ -18,7 +18,10 @@ import { useUpdatePriceMutation } from "services/launchpad.service";
 
 const schema = yup.object().shape({
   collectionName: yup.string().required("Collection name is required"),
-  price: yup.number().positive("Price must be positive").required("Price is required"),
+  price: yup
+    .number()
+    .positive("Price must be positive")
+    .required("Price is required"),
 });
 
 const UpdatePriceForm = () => {
@@ -52,11 +55,12 @@ const UpdatePriceForm = () => {
       const result = await updatePrice({
         collectionName: data.collectionName,
         price: parseFloat(data.price),
-        wallet: user?.walletName === "Ecko Wallet"
-          ? "ecko"
-          : user?.walletName === "Chainweaver"
-          ? "CW"
-          : user?.walletName
+        wallet:
+          user?.walletName === "Ecko Wallet"
+            ? "ecko"
+            : user?.walletName === "Chainweaver"
+            ? "CW"
+            : user?.walletName,
       }).unwrap();
 
       if (result?.success) {

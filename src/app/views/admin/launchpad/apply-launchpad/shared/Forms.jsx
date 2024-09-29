@@ -346,8 +346,6 @@ const WhitelistForm = (props) => {
           });
           dispatch(setRefresh(true));
           dispatch(setModalOpen(false));
-
-
         }
       } else if (result.error) {
         console.error("Error creating whitelist", result.error);
@@ -573,7 +571,7 @@ const UnrevealedTokensForm = (props) => {
             ? "CW"
             : user?.walletName,
       });
-console.log("🚀 ~ onSubmit ~ result", result);
+      console.log("🚀 ~ onSubmit ~ result", result);
       if (result?.data?.length > 0) {
         console.log("Unrevealed Tokens created successfully", result);
         setTableData(result.data);
@@ -589,8 +587,7 @@ console.log("🚀 ~ onSubmit ~ result", result);
         console.error("Error creating unrevealed tokens", result.error);
         dispatch(setRefresh(false));
         dispatch(setModalOpen(false));
-      }
-      else {
+      } else {
         Swal.fire({
           icon: "warning",
           title: "Warning",

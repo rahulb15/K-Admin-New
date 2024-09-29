@@ -100,6 +100,7 @@ const CreateBlog = () => {
   console.log(htmlContent);
 
   const handleSubmit = () => {
+    console.log("submit");
     if (title === "" || !editorState) {
       // alert("Please fill in the title and content");
       setError(true);

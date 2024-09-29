@@ -422,7 +422,6 @@
 //       setValue("collectionCoverImage", "");
 //     }
 //   }
-  
 
 //   return (
 //     <Paper elevation={3} sx={{ p: 4, maxWidth: 800, mx: "auto" }}>
@@ -791,9 +790,6 @@
 
 // export { CreateCollectionForm, UnrevealedTokensForm };
 
-
-
-
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
 import {
@@ -862,34 +858,33 @@ import collectionService from "services/collectionServices.tsx";
 // });
 
 const cleanUri = (uri) => {
-  return uri.trim().replace(/,$/, ''); // Remove trailing comma if present
+  return uri.trim().replace(/,$/, ""); // Remove trailing comma if present
 };
 
 const formatUris = (uris) => {
   return uris
     .map(cleanUri)
-    .filter(uri => uri.length > 0)
-    .join(',\n');
+    .filter((uri) => uri.length > 0)
+    .join(",\n");
 };
 
 const splitUris = (value) => {
-  return value.split(/,\s*|\n/).filter(uri => uri.trim().length > 0);
+  return value.split(/,\s*|\n/).filter((uri) => uri.trim().length > 0);
 };
-
 
 const createCollectionSchema = yup.object().shape({
   totalSupply: yup.number().required("Total supply is required"),
   creator: yup.string().required("Creator is required"),
   mintPrice: yup.number().required("Mint price is required"),
   collectionRequestUriList: yup
-  .string()
-  .required("URI list is required")
-  .test("valid-uri-list", "Please enter valid URIs", (value) => {
-    if (!value) return false;
-    const uris = splitUris(value);
-    const uriRegex = /^(https?:\/\/)?[^\s,]+$/; // More lenient regex
-    return uris.every((uri) => uriRegex.test(cleanUri(uri)));
-  }),
+    .string()
+    .required("URI list is required")
+    .test("valid-uri-list", "Please enter valid URIs", (value) => {
+      if (!value) return false;
+      const uris = splitUris(value);
+      const uriRegex = /^(https?:\/\/)?[^\s,]+$/; // More lenient regex
+      return uris.every((uri) => uriRegex.test(cleanUri(uri)));
+    }),
   policy: yup
     .array()
     .of(yup.string())
@@ -1078,12 +1073,11 @@ const CreateCollectionForm = (props) => {
     console.log("Collection data:", data);
     try {
       const uris = data.collectionRequestUriList
-        .split(/,\s*|\n/)  // Split on comma followed by optional whitespace, or newline
+        .split(/,\s*|\n/) // Split on comma followed by optional whitespace, or newline
         .map((uri) => uri.trim())
         .filter((uri) => uri.length > 0);
-  
-      console.log("URIs:", uris);
 
+      console.log("URIs:", uris);
 
       //       const resultApi = await createCollectionRequest(
       //         data.totalSupply,
@@ -1223,7 +1217,6 @@ const CreateCollectionForm = (props) => {
     }
   };
 
-
   const handleRemoveImage = (type) => {
     if (type === "banner") {
       setBannerPreview(null);
@@ -1336,46 +1329,46 @@ const CreateCollectionForm = (props) => {
             </FormControl>
           </Grid>
           <Grid item xs={12}>
-          <Controller
-  name="collectionRequestUriList"
-  control={control}
-  render={({ field }) => (
-    <TextField
-      {...field}
-      label="URI List"
-      variant="outlined"
-      fullWidth
-      multiline
-      rows={4}
-      error={!!errors.collectionRequestUriList}
-      helperText={errors.collectionRequestUriList?.message}
-      placeholder='Example: https://example.com/1.json,\nhttps://example.com/2.json,\nhttps://example.com/3.json'
-      onChange={(e) => {
-        const inputValue = e.target.value;
-        const lastChar = inputValue.slice(-1);
-        
-        if (lastChar === ',') {
-          // If the last character is a comma, format the URIs
-          const uris = splitUris(inputValue);
-          const formattedValue = formatUris(uris) + ',\n';
-          field.onChange(formattedValue);
-        } else {
-          // Otherwise, just update the value as is
-          field.onChange(inputValue);
-        }
-        
-        trigger("collectionRequestUriList");
-      }}
-      onBlur={(e) => {
-        // Format URIs on blur
-        const uris = splitUris(e.target.value);
-        const formattedValue = formatUris(uris);
-        field.onChange(formattedValue);
-        trigger("collectionRequestUriList");
-      }}
-    />
-  )}
-/>
+            <Controller
+              name="collectionRequestUriList"
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  label="URI List"
+                  variant="outlined"
+                  fullWidth
+                  multiline
+                  rows={4}
+                  error={!!errors.collectionRequestUriList}
+                  helperText={errors.collectionRequestUriList?.message}
+                  placeholder="Example: https://example.com/1.json,\nhttps://example.com/2.json,\nhttps://example.com/3.json"
+                  onChange={(e) => {
+                    const inputValue = e.target.value;
+                    const lastChar = inputValue.slice(-1);
+
+                    if (lastChar === ",") {
+                      // If the last character is a comma, format the URIs
+                      const uris = splitUris(inputValue);
+                      const formattedValue = formatUris(uris) + ",\n";
+                      field.onChange(formattedValue);
+                    } else {
+                      // Otherwise, just update the value as is
+                      field.onChange(inputValue);
+                    }
+
+                    trigger("collectionRequestUriList");
+                  }}
+                  onBlur={(e) => {
+                    // Format URIs on blur
+                    const uris = splitUris(e.target.value);
+                    const formattedValue = formatUris(uris);
+                    field.onChange(formattedValue);
+                    trigger("collectionRequestUriList");
+                  }}
+                />
+              )}
+            />
           </Grid>
           <Grid item xs={12} md={6}>
             <Controller
@@ -1619,4 +1612,3 @@ const UnrevealedTokensForm = (props) => {
 };
 
 export { CreateCollectionForm, UnrevealedTokensForm };
-
