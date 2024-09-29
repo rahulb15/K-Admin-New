@@ -12,6 +12,7 @@ import { useEffect } from "react";
 import launchapadServices from "services/launchapadServices.tsx";
 import { setSelection } from "features/selectionLaunchpadSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
+import UpdatePriceForm from "./UpdatePriceForm";
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -187,6 +188,22 @@ const MintAndLaunch = () => {
             </Stack>
           </Stack>
         </Grid>
+        {/* <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Price Management
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("updatePrice")}
+              >
+                Update Price
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid> */}
       </Grid>
 
       <Modal open={launchpadModalAction} onClose={handleClose}>
@@ -196,6 +213,7 @@ const MintAndLaunch = () => {
           {formType === "createNgCollection" && <CreateNGCollectionForm />}
           {formType === "unrevealedTokens" && <UnrevealedTokensForm />}
           {formType === "policyManagement" && <PolicyManagementForm />}
+          {formType === "updatePrice" && <UpdatePriceForm />}
         </Box>
       </Modal>
     </Box>

@@ -251,23 +251,23 @@ export const priorityPassApi = createApi({
         console.log("pactCode", pactCode);
 
         const txn = Pact.builder
-        .execution(pactCode)
-        .addData("guard", guard)
-        .addData("marmalade_collection", { id: colId })
-        .addSigner(publicKey)
-        // .addSigner(publicKey, (withCapability) => [
-        //   withCapability("coin.GAS"),
-        //   withCapability("free.lptest001.MINTPROCESS", syncColName),
-        // ])
-        .setMeta({
-          creationTime: creationTime(),
-          sender: account,
-          gasLimit: 150000,
-          chainId: CHAIN_ID,
-          ttl: 28800,
-        })
-        .setNetworkId(NETWORKID)
-        .createTransaction();
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addData("marmalade_collection", { id: colId })
+          .addSigner(publicKey)
+          // .addSigner(publicKey, (withCapability) => [
+          //   withCapability("coin.GAS"),
+          //   withCapability("free.lptest001.MINTPROCESS", syncColName),
+          // ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
 
         console.log("syncWithNg", txn);
         console.log("sign");
@@ -298,6 +298,277 @@ export const priorityPassApi = createApi({
         }
       },
     }),
+    addPolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, collectionRequestPolicy, wallet } = args;
+        console.log("addPolicies args:", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.add-policies ${JSON.stringify(
+          collectionName
+        )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+    replacePolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, collectionRequestPolicy, wallet } = args;
+        console.log("replacePolicies args:", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.replace-policies ${JSON.stringify(
+          collectionName
+        )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+    getPolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName } = args;
+        console.log("collectionName", collectionName);
+        const colId = await collection_id();
+        console.log(colId);
+        const pactCode = `(free.kmpasstest003.get-policies-of-collection)`;
+
+
+        const transaction = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: "1" })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const response = await client.local(transaction, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          console.log("response", response.result);
+
+          if (response.result.status === "success") {
+            let policies = response.result.data;
+            console.log("Policies in service:", policies);
+            return { data: policies };
+          } else {
+            throw new Error(response.result.error);
+          }
+        } catch (error) {
+          console.error("Error in getPolicies:", error);
+          return { error: { message: error.message } };
+        }
+      },
+    }),
+
+    addPassUser: builder.mutation({
+      async queryFn(args) {
+        const { priorityUsers, admin, wallet } = args;
+        console.log("args", args);
+        const publicKey = admin.slice(2);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+        
+        // Modified part: Format priorityUsers with quotes and without commas
+        const formattedUsers = priorityUsers.map(user => `"${user}"`).join(" ");
+        const pactCode = `(free.lptest001.add-priority-users [${formattedUsers}])`;
+        console.log("pactCode", pactCode);
+    
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+            withCapability("free.lptest001.PRIORITY"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: admin,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+    
+        console.log("Transaction details:", txn);
+    
+        try {
+          console.log("sign");
+    
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+    
+          console.log("localResponse", localResponse.result);
+    
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+    
+            const response = await signFunction(signedTx);
+    
+            return { data: response.result };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+    updatePrice: builder.mutation({
+      async queryFn(args) {
+        const { price, wallet } = args;
+        console.log("updatePrice args:", args);
+        const account =
+          "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        let decimalPrice;
+        const calculateDecimal = (price) => {
+          const priceString = price.toString();
+          const priceArray = priceString.split(".");
+          if (priceArray.length === 1) {
+            decimalPrice = `${priceArray[0]}.0`;
+          } else {
+            decimalPrice = priceString;
+          }
+        };
+        calculateDecimal(price);
+
+        const pactCode = `(free.kmpasstest003.update-price ${decimalPrice})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey)
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("updatePrice txn", txn);
+
+        try {
+          console.log("sign");
+
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          console.log("localResponse", localResponse.result);
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+
+            return { data: response.result };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
   }),
 });
 
@@ -305,4 +576,9 @@ export const {
   useCreateCollectionMutation,
   useUnrevealedTokensMutation,
   useSyncWithNgMutation,
+  useAddPoliciesMutation,
+  useReplacePoliciesMutation,
+  useGetPoliciesMutation,
+  useAddPassUserMutation,
+  useUpdatePriceMutation,
 } = priorityPassApi;

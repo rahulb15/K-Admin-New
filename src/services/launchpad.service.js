@@ -992,6 +992,97 @@ export const launchpadApi = createApi({
         }
       },
     }),
+    getPolicies: builder.mutation({
+      async queryFn(args) {
+        const { collectionName } = args;
+        console.log("collectionName", collectionName);
+        const pactCode = `(free.lptest001.get-policy-of-collection ${JSON.stringify(
+          collectionName
+        )})`;
+  
+        const transaction = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: "1" })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+  
+        try {
+          const response = await client.local(transaction, {
+            preflight: false,
+            signatureVerification: false,
+          });
+  
+          if (response.result.status === "success") {
+            let policies = response.result.data;
+            console.log("Policies in service:", policies);
+            return { data: policies };  // Return the policies data
+          } else {
+            throw new Error(response.result.error);
+          }
+        } catch (error) {
+          console.error("Error in getPolicies:", error);
+          return { error: { message: error.message } };
+        }
+      },
+    }),
+
+    updatePrice: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, price, wallet } = args;
+        console.log("updatePrice args:", args);
+        const account = await getColCreator(collectionName);
+        console.log("account", account);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.kmpasstest003.update-price ${price})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+          console.log("updatePrice txn", txn);
+
+        try {
+          const client = new Pact.Pact(NETWORKID);
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+  
 
 
 
@@ -1015,4 +1106,6 @@ export const {
   useAddRoleMutation,
   useAddPoliciesMutation,
   useReplacePoliciesMutation,
+  useGetPoliciesMutation,
+  useUpdatePriceMutation,
 } = launchpadApi;

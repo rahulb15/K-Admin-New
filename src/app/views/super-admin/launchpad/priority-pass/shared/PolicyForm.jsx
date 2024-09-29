@@ -21,19 +21,18 @@ import {
   useAddPoliciesMutation,
   useReplacePoliciesMutation,
   useGetPoliciesMutation,
-} from "services/launchpad.service";
+} from "services/prioritypass.service";
 
+
+
+// * "INSTANT-MINT NON-FUNGIBLE COLLECTION DISABLE-BURN DISABLE-TRANSFER DISABLE-SALE"
 const policyList = [
   "INSTANT-MINT",
   "NON-FUNGIBLE",
   "COLLECTION",
-  "ROYALTY",
-  "ADJUSTABLE-ROYALTY",
   "DISABLE-BURN",
-  "FIXED-SALE",
-  "MARKETPLACE",
-  "AUCTION-SALE",
-  "DUTCH-AUCTION-SALE",
+  "DISABLE-TRANSFER",
+  "DISABLE-SALE",
 ];
 
 const schema = yup.object().shape({
@@ -62,6 +61,7 @@ const PolicyManagementForm = () => {
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
   );
+  console.log("selection", selection);
   const [action, setAction] = useState("add");
   const [addPolicies, { isLoading: isAddLoading, error: addError }] = useAddPoliciesMutation();
   const [replacePolicies, { isLoading: isReplaceLoading, error: replaceError }] = useReplacePoliciesMutation();
@@ -71,12 +71,12 @@ const PolicyManagementForm = () => {
 
   useEffect(() => {
     const fetchPolicies = async () => {
-      if (selection?.collectionName) {
-        setValue("collectionName", selection.collectionName);
+      // if (selection?.collectionName) {
+        // setValue("collectionName", selection.collectionName);
         setIsLoadingPolicies(true);
         try {
           const result = await getPolicies({
-            collectionName: selection.collectionName
+            collectionName: selection?.collectionName || "priority_pass_006"
           });
           
           console.log("Result from getPolicies:", result);
@@ -107,7 +107,7 @@ const PolicyManagementForm = () => {
         } finally {
           setIsLoadingPolicies(false);
         }
-      }
+      // }
     };
 
     fetchPolicies();

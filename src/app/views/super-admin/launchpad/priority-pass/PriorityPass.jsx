@@ -1,14 +1,15 @@
 import React, { useState } from "react";
 import { Button, Modal, Box, Typography, Grid, Stack } from "@mui/material";
-import {
-  CreateCollectionForm,
-  UnrevealedTokensForm,
-} from "./shared/Forms"; // Import forms
+import { CreateCollectionForm, UnrevealedTokensForm } from "./shared/Forms"; // Import forms
+import PolicyManagementForm from "./shared/PolicyForm";
+import AddUserForm from "./shared/AddUserForm";
+
 import { useSelector, useDispatch } from "react-redux";
 import { useEffect } from "react";
 import launchapadServices from "services/launchapadServices.tsx";
 import { setSelection } from "features/selectionLaunchpadSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
+import UpdatePriceForm from "./shared/UpdatePriceForm";
 const modalStyle = {
   position: "absolute",
   top: "50%",
@@ -148,12 +149,75 @@ const PriorityPass = () => {
             </Stack>
           </Stack>
         </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Policy Management
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("policyManagement")}
+              >
+                Manage Policies
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid>
+        <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Price Management
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("updatePrice")}
+              >
+                Update Price
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid>
+      </Grid>
+
+      <hr
+        style={{
+          border: "1px solid #f0f0f0",
+          width: "100%",
+          marginBottom: "20px",
+          marginTop: "20px",
+        }}
+      />
+
+      <Grid container spacing={4}>
+        <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              User Management
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("addUser")}
+              >
+                Add Priority Users
+              </Button>
+            </Stack>
+          </Stack>
+        </Grid>
       </Grid>
 
       <Modal open={launchpadModalAction} onClose={handleClose}>
         <Box sx={modalStyle}>
           {formType === "createCollection" && <CreateCollectionForm />}
           {formType === "unrevealedTokens" && <UnrevealedTokensForm />}
+          {formType === "policyManagement" && <PolicyManagementForm />}
+          {formType === "updatePrice" && <UpdatePriceForm />}
+          {formType === "addUser" && <AddUserForm />}
         </Box>
       </Modal>
     </Box>
