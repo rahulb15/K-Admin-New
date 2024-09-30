@@ -2,8 +2,9 @@ import { Pact, createClient } from "@kadena/client"; // CUSTOM COMPONENT
 import { MatLoading } from "app/components";
 import axios from "axios";
 import { NETWORK } from "../../constants/contextConstants";
-import { createContext, useEffect, useReducer } from "react";
+import React, { createContext, useEffect, useReducer, useState } from "react";
 import userServices from "services/userServices.tsx";
+import ChainweaverModal from "app/components/ChainweaverModal";
 const url = process.env.REACT_APP_API_URL;
 const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
 console.log(NETWORKID, "NETWORKID");
@@ -54,7 +55,22 @@ const AuthContext = createContext({
 
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
+  const [chainweaverModalOpen, setChainweaverModalOpen] = useState(false);
+  const [chainweaverAddressPromiseResolver, setChainweaverAddressPromiseResolver] = useState(null);
 
+  const openChainweaverModal = () => {
+    return new Promise((resolve) => {
+      setChainweaverModalOpen(true);
+      setChainweaverAddressPromiseResolver(() => resolve);
+    });
+  };
+
+  const handleChainweaverSubmit = (address) => {
+    setChainweaverModalOpen(false);
+    if (chainweaverAddressPromiseResolver) {
+      chainweaverAddressPromiseResolver(address);
+    }
+  };
   const eckoWalletConnect = async () => {
     console.log("eckoWalletConnect");
     const checkNetwork = await window.kadena.request({
@@ -256,70 +272,142 @@ export const AuthProvider = ({ children }) => {
     // const { user } = response.data;
   };
 
+  // const login = async (username, password) => {
+  //   try {
+  //     const response = await eckoWalletConnect();
+  //     console.log(response);
+  //     if (response.status === "success") {
+  //       console.log(response);
+  //       const user = await axios.post(`${url}/admin/login`, {
+  //         username,
+  //         password,
+  //         walletAddress: response.account.account,
+  //       });
+  //       console.log(user);
+  //       if (user.data.status === "success") {
+  //         console.log(user.data.data.is2FAEnabled, "ddddddddddddddata");
+  //         if (user.data.data.is2FAEnabled === false) {
+  //           console.log("enable2FA");
+  //           const twofadata = await enable2FA(user.data.token);
+  //           console.log(twofadata);
+  //           if (
+  //             twofadata.qrCodeUrl &&
+  //             twofadata.secret &&
+  //             twofadata.qrCodeUrl !== "" &&
+  //             twofadata.secret !== ""
+  //           ) {
+  //             dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+  //             // localStorage.setItem("token", user.data.token);
+  //             user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+  //             user.data.data.secret = twofadata.secret;
+  //             user.data.data.is2FAModalOpen = true;
+  //             return user.data;
+  //           }
+  //         } else {
+  //           console.log("enable2FA");
+  //           const twofadata = await enable2FA(user.data.token);
+  //           console.log(twofadata);
+  //           if (twofadata.secret && twofadata.secret !== "") {
+  //             dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+  //             // localStorage.setItem("token", user.data.token);
+  //             user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+  //             user.data.data.secret = twofadata.secret;
+  //             user.data.data.is2FAModalOpen = true;
+  //             return user.data;
+  //           }
+  //         }
+
+  //         // dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+  //         // localStorage.setItem("token", user.data.token);
+  //       } else {
+  //         return user.data;
+  //       }
+
+  //       // return user.data;
+  //     } else {
+  //       return response;
+  //     }
+
+  //     // dispatch({ type: "LOGIN", payload: { user } });
+  //   } catch (error) {
+  //     return error.response.data;
+  //   }
+
+  //   // const response = await axios.post("/api/auth/login", { email, password });
+  //   // const { user } = response.data;
+  // };
+  
   const login = async (username, password) => {
     try {
-      const response = await eckoWalletConnect();
-      console.log(response);
-      if (response.status === "success") {
-        console.log(response);
-        const user = await axios.post(`${url}/admin/login`, {
-          username,
-          password,
-          walletAddress: response.account.account,
-        });
-        console.log(user);
-        if (user.data.status === "success") {
-          console.log(user.data.data.is2FAEnabled, "ddddddddddddddata");
-          if (user.data.data.is2FAEnabled === false) {
-            console.log("enable2FA");
-            const twofadata = await enable2FA(user.data.token);
-            console.log(twofadata);
-            if (
-              twofadata.qrCodeUrl &&
-              twofadata.secret &&
-              twofadata.qrCodeUrl !== "" &&
-              twofadata.secret !== ""
-            ) {
-              dispatch({ type: "LOGIN", payload: { user: user.data.data } });
-              // localStorage.setItem("token", user.data.token);
-              user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
-              user.data.data.secret = twofadata.secret;
-              user.data.data.is2FAModalOpen = true;
-              return user.data;
-            }
-          } else {
-            console.log("enable2FA");
-            const twofadata = await enable2FA(user.data.token);
-            console.log(twofadata);
-            if (twofadata.secret && twofadata.secret !== "") {
-              dispatch({ type: "LOGIN", payload: { user: user.data.data } });
-              // localStorage.setItem("token", user.data.token);
-              user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
-              user.data.data.secret = twofadata.secret;
-              user.data.data.is2FAModalOpen = true;
-              return user.data;
-            }
-          }
-
-          // dispatch({ type: "LOGIN", payload: { user: user.data.data } });
-          // localStorage.setItem("token", user.data.token);
-        } else {
-          return user.data;
-        }
-
-        // return user.data;
+      // First, check username and password to determine wallet type
+      const checkResponse = await axios.post(`${url}/user/check-user-auth`, {
+        username,
+        password,
+      });
+  
+      if (checkResponse.data.status !== "success") {
+        return checkResponse.data;
+      }
+  
+      const { walletName } = checkResponse.data.data;
+      console.log(walletName);
+  
+      let walletResponse;
+      if (walletName === "Chainweaver") {
+        // Open modal for Chainweaver address input
+        const address = await openChainweaverModal(); // You need to implement this function
+        walletResponse = await chainweaverConnect(address);
+      } else if (walletName === "Ecko Wallet") {
+        walletResponse = await eckoWalletConnect();
       } else {
-        return response;
+        return { status: "error", message: "Unsupported wallet type" };
       }
 
-      // dispatch({ type: "LOGIN", payload: { user } });
-    } catch (error) {
-      return error.response.data;
-    }
+      console.log(walletResponse);
 
-    // const response = await axios.post("/api/auth/login", { email, password });
-    // const { user } = response.data;
+  
+      if (walletResponse.status !== "success") {
+        return walletResponse;
+      }
+  
+      // Proceed with login
+      const loginData = {
+        username,
+        password,
+        walletAddress: walletName === "Chainweaver" ? walletResponse.data.account : walletResponse.account.account,
+      };
+  
+      const user = await axios.post(`${url}/admin/login`, loginData);
+  
+      if (user.data.status === "success") {
+        if (!user.data.data.is2FAEnabled) {
+          const twofadata = await enable2FA(user.data.token);
+          if (twofadata.qrCodeUrl && twofadata.secret) {
+            dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+            user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+            user.data.data.secret = twofadata.secret;
+            user.data.data.is2FAModalOpen = true;
+            return user.data;
+          }
+        } else {
+          const twofadata = await enable2FA(user.data.token);
+          if (twofadata.secret) {
+            dispatch({ type: "LOGIN", payload: { user: user.data.data } });
+            user.data.data.qrCodeUrl = twofadata.qrCodeUrl;
+            user.data.data.secret = twofadata.secret;
+            user.data.data.is2FAModalOpen = true;
+            return user.data;
+          }
+        }
+      } else {
+        return user.data;
+      }
+    } catch (error) {
+      return error.response?.data || { status: "error", message: "An unexpected error occurred" };
+    }
   };
+  
+  
   const register = async (email, username, password) => {
     const response = await axios.post("/api/auth/register", {
       email,
@@ -382,6 +470,11 @@ export const AuthProvider = ({ children }) => {
       }}
     >
       {children}
+      <ChainweaverModal
+        open={chainweaverModalOpen}
+        onClose={() => setChainweaverModalOpen(false)}
+        onSubmit={handleChainweaverSubmit}
+      />
     </AuthContext.Provider>
   );
 };

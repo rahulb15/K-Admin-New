@@ -101,6 +101,7 @@ export default function JwtLogin() {
   const handleFormSubmit = async (values) => {
     setLoading(true);
     try {
+      console.log(values, "values");
       const response = await login(values.username, values.password);
       console.log(response, "login response");
       if (response.status === "success") {
