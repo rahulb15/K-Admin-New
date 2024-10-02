@@ -37,23 +37,34 @@ const presaleSchema = yup.object().shape({
     .typeError("Price must be a number")
     .positive("Price must be positive")
     .required("Presale mint price is required"),
-  presaleAddress: yup
-    .string()
-    .required("Presale address is required")
-    .matches(
-      /^(k:[a-zA-Z0-9]+,?)+$/,
-      "Invalid address format. Use 'k:address1,k:address2'"
-    ),
+  // presaleAddress: yup
+  //   .string()
+  //   .required("Presale address is required")
+  //   .matches(
+  //     /^(k:[a-zA-Z0-9]+,?)+$/,
+  //     "Invalid address format. Use 'k:address1,k:address2'"
+  //   ),
+  presaleAddresses: yup
+  .string()
+  .required("Presale addresses are required")
+  .test("valid-addresses", "Invalid address format or duplicate addresses", function(value) {
+    if (!value) return false;
+    const addresses = value.split(',').map(addr => addr.trim());
+    const uniqueAddresses = new Set(addresses);
+    return addresses.every(addr => /^k:[a-zA-Z0-9]+$/.test(addr)) && addresses.length === uniqueAddresses.size;
+  }),
 });
 
 const whitelistSchema = yup.object().shape({
   createWlAdd: yup
-    .string()
-    .required("Whitelist address is required")
-    .matches(
-      /^(k:[a-zA-Z0-9]+,?)+$/,
-      "Invalid address format. Use 'k:address1,k:address2'"
-    ),
+  .string()
+  .required("Whitelist addresses are required")
+  .test("valid-addresses", "Invalid address format or duplicate addresses", function(value) {
+    if (!value) return false;
+    const addresses = value.split(',').map(addr => addr.trim());
+    const uniqueAddresses = new Set(addresses);
+    return addresses.every(addr => /^k:[a-zA-Z0-9]+$/.test(addr)) && addresses.length === uniqueAddresses.size;
+  }),
   createWlPrice: yup
     .number()
     .typeError("Price must be a number")
@@ -79,7 +90,7 @@ const PreSaleForm = (props) => {
     resolver: yupResolver(presaleSchema),
   });
   const dispatch = useDispatch();
-  const [createPresale] = useCreatePresaleMutation();
+  const [createPresale, { isLoading, error }] = useCreatePresaleMutation();
   const { login, user } = useAuth();
   const [presaleStartDateAndTime, setPresaleStartDateAndTime] =
     React.useState(null);
@@ -127,10 +138,12 @@ const PreSaleForm = (props) => {
     const formattedEndDate = `time "${presaleEndTime}Z"`;
     console.log("formattedEndDate", formattedEndDate);
 
-    const kaddress = data.presaleAddress?.split(",");
-    const kaddress1 = kaddress.map((address) => `'${address}'`);
-    const kaddress2 = kaddress1.join(",");
-    console.log("🚀 ~ handlePreSaleSubmit ~ kaddress2", kaddress2);
+    // const kaddress = data.presaleAddress?.split(",");
+    // const kaddress1 = kaddress.map((address) => `'${address}'`);
+    // const kaddress2 = kaddress1.join(",");
+    // console.log("🚀 ~ handlePreSaleSubmit ~ kaddress2", kaddress2);
+    const kaddresses = data.presaleAddresses.split(",").map(addr => `"${addr.trim()}"`);
+    const formattedAddresses = `[${kaddresses.join(" ")}]`;
 
     try {
       const result = await createPresale({
@@ -140,7 +153,7 @@ const PreSaleForm = (props) => {
         createPresaleStartTime: formattedStartDate,
         createPresaleEndDate: presaleEndDateNew,
         createPresaleEndTime: formattedEndDate,
-        createPresaleAdd: kaddress2,
+        createPresaleAdd: formattedAddresses,
         wallet:
           user?.walletName === "Ecko Wallet"
             ? "ecko"
@@ -167,7 +180,7 @@ const PreSaleForm = (props) => {
             .utc()
             .format(),
           presalePrice: parseFloat(data.presaleMintPrice).toFixed(2),
-          presaleAddressess: kaddress,
+          presaleAddressess: data.presaleAddresses.split(",").map(addr => addr.trim()),
         };
 
         console.log("🚀 ~ handleSubmit ~ body", body);
@@ -258,20 +271,26 @@ const PreSaleForm = (props) => {
         )}
       />
       <Controller
-        name="presaleAddress"
+        name="presaleAddresses"
         control={control}
         render={({ field }) => (
           <TextField
             {...field}
-            label="Presale Address"
+            label="Presale Addresses"
             fullWidth
             margin="normal"
-            error={!!errors.presaleAddress}
-            helperText={errors.presaleAddress?.message}
+            multiline
+            rows={4}
+            error={!!errors.presaleAddresses}
+            helperText={errors.presaleAddresses?.message || "Enter addresses separated by commas (e.g., k:address1,k:address2)"}
           />
         )}
       />
-      <Button type="submit">Submit</Button>
+      {/* <Button type="submit">Submit</Button> */}
+      {error && <Typography color="error">{error.data?.message || "An error occurred"}</Typography>}
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? "Submitting..." : "Submit"}
+      </Button>
     </form>
   );
 };
@@ -285,7 +304,7 @@ const WhitelistForm = (props) => {
     resolver: yupResolver(whitelistSchema),
   });
   const dispatch = useDispatch();
-  const [createWl] = useCreateWlMutation();
+  const [createWl, { isLoading, error }] = useCreateWlMutation();
   const { login, user } = useAuth();
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
@@ -303,10 +322,14 @@ const WhitelistForm = (props) => {
     const formattedStartDate = `time "${whitelistStartTime}Z"`;
     console.log("formattedDate", formattedStartDate);
 
+    const kaddresses = data.createWlAdd.split(",").map(addr => `"${addr.trim()}"`);
+    const formattedAddresses = `[${kaddresses.join(" ")}]`;
+
+
     try {
       const result = await createWl({
         createWlCol: selection.collectionName,
-        createWlAdd: data.createWlAdd,
+        createWlAdd: formattedAddresses,
         createWlPrice: parseFloat(data.createWlPrice).toFixed(2),
         createWlStartTime: formattedStartDate,
         wallet:
@@ -320,7 +343,7 @@ const WhitelistForm = (props) => {
       console.log("🚀 ~ handleWhitelistSubmit ~ result", result);
       if (result.data.result.status === "success") {
         const body = {
-          whitelistAddresses: data.createWlAdd,
+          whitelistAddresses: data.createWlAdd.split(",").map(addr => addr.trim()),
           whitelistStartDate: moment(data.createWlStartTime).format(
             "YYYY-MM-DD"
           ),
@@ -361,7 +384,7 @@ const WhitelistForm = (props) => {
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
-      <Controller
+       <Controller
         name="createWlAdd"
         control={control}
         render={({ field }) => (
@@ -370,8 +393,10 @@ const WhitelistForm = (props) => {
             label="Whitelist Addresses"
             fullWidth
             margin="normal"
+            multiline
+            rows={4}
             error={!!errors.createWlAdd}
-            helperText={errors.createWlAdd?.message}
+            helperText={errors.createWlAdd?.message || "Enter addresses separated by commas (e.g., k:address1,k:address2)"}
           />
         )}
       />
@@ -410,7 +435,11 @@ const WhitelistForm = (props) => {
           )}
         />
       </LocalizationProvider>
-      <Button type="submit">Submit</Button>
+      {/* <Button type="submit">Submit</Button> */}
+      {error && <Typography color="error">{error.data?.message || "An error occurred"}</Typography>}
+      <Button type="submit" disabled={isLoading}>
+        {isLoading ? "Submitting..." : "Submit"}
+      </Button>
     </form>
   );
 };

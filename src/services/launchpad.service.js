@@ -419,7 +419,7 @@ export const launchpadApi = createApi({
           (${createPresaleStartTime}) 
           ${JSON.stringify(createPresaleEndDate)} 
           (${createPresaleEndTime})
-          ["k:a2ff4689f89f0f3bb6a32fa35b8547c0cb4070f6b4af76fb53892f44fe1f9069"]
+          ${createPresaleAdd}
           )`;
         console.log("pactCode", pactCode);
 
@@ -486,7 +486,7 @@ export const launchpadApi = createApi({
           ${JSON.stringify(createWlCol)} 
           ${JSON.stringify(account)}
           (read-keyset "guard")    
-          ["k:a2ff4689f89f0f3bb6a32fa35b8547c0cb4070f6b4af76fb53892f44fe1f9069"]              
+          ${createWlAdd}              
           ${createWlPrice}
           (${createWlStartTime})
         )`;
