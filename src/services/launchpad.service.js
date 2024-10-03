@@ -566,6 +566,7 @@ export const launchpadApi = createApi({
             preflight: false,
             signatureVerification: false,
           });
+          console.log("localResponse.result.status",localResponse )
 
           if (localResponse.result.status === "success") {
             let signedTx;
@@ -576,6 +577,7 @@ export const launchpadApi = createApi({
             }
 
             const response = await signFunction(signedTx);
+            console.log("response580", response);
             return { data: response };
           } else {
             return { error: localResponse.result.error };

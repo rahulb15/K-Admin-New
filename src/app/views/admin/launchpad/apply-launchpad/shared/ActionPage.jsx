@@ -242,10 +242,6 @@
 
 // export default MintAndLaunch;
 
-
-
-
-
 import React, { useState, useEffect } from "react";
 import { Button, Modal, Box, Typography, Grid, Stack } from "@mui/material";
 import moment from "moment";
@@ -278,9 +274,13 @@ const MintAndLaunch = () => {
   const [open, setOpen] = useState(false);
   const [formType, setFormType] = useState("");
   const dispatch = useDispatch();
-  const selection = useSelector((state) => state?.selectionLaunchpad?.selection);
+  const selection = useSelector(
+    (state) => state?.selectionLaunchpad?.selection
+  );
   const refresh = useSelector((state) => state?.refresh?.isRefresh);
-  const launchpadModalAction = useSelector((state) => state?.launchpadModalAction?.isModalOpen);
+  const launchpadModalAction = useSelector(
+    (state) => state?.launchpadModalAction?.isModalOpen
+  );
 
   useEffect(() => {
     if (!selection?._id) return;
@@ -312,7 +312,7 @@ const MintAndLaunch = () => {
     const now = moment();
     const presaleStart = moment(selection?.presaleStartDateAndTime);
     const presaleEnd = moment(selection?.presaleEndDateAndTime);
-    return now.isBetween(presaleStart, presaleEnd, null, '[]');
+    return now.isBetween(presaleStart, presaleEnd, null, "[]");
   };
 
   const isWhitelistActive = () => {
@@ -323,11 +323,22 @@ const MintAndLaunch = () => {
   };
 
   const canAddPresaleUsers = () => {
-    return selection?.enablePresale && moment().isBefore(moment(selection?.presaleStartDateAndTime));
+    console.log("selection?.enablePresale", selection?.presaleStartDateAndTime);
+    return (
+      selection?.enablePresale &&
+      moment().isBefore(moment(selection?.presaleStartDateAndTime))
+    );
   };
 
   const canAddWhitelistUsers = () => {
-    return selection?.enableWhitelist && moment().isBefore(moment(selection?.whitelistStartDateAndTime));
+    console.log(
+      "selection?.enableWhitelist",
+      selection?.whitelistStartDateAndTime
+    );
+    return (
+      selection?.enableWhitelist &&
+      moment().isBefore(moment(selection?.whitelistStartDateAndTime))
+    );
   };
 
   return (
@@ -335,15 +346,27 @@ const MintAndLaunch = () => {
       <Typography variant="h4" gutterBottom sx={{ mb: 5 }}>
         PlayGround Area
       </Typography>
-      <hr style={{ border: "2px solid #f0f0f0", width: "100%", marginBottom: "20px", marginTop: "20px" }} />
+      <hr
+        style={{
+          border: "2px solid #f0f0f0",
+          width: "100%",
+          marginBottom: "20px",
+          marginTop: "20px",
+        }}
+      />
 
       <Typography variant="h6" gutterBottom>
-        Welcome to the playground area. Here you can manage your NFT collections and configure your minting settings.
+        Welcome to the playground area. Here you can manage your NFT collections
+        and configure your minting settings.
       </Typography>
 
       <Box sx={{ mb: 5 }}></Box>
 
-      <Grid container spacing={4} sx={{ display: "flex", justifyContent: "center" }}>
+      <Grid
+        container
+        spacing={4}
+        sx={{ display: "flex", justifyContent: "center" }}
+      >
         <Grid item xs={12} sm={6} md={4}>
           <Stack spacing={3}>
             <Typography variant="h5" gutterBottom sx={{ textAlign: "center" }}>
@@ -361,7 +384,14 @@ const MintAndLaunch = () => {
         </Grid>
       </Grid>
 
-      <hr style={{ border: "1px solid #f0f0f0", width: "100%", marginBottom: "20px", marginTop: "20px" }} />
+      <hr
+        style={{
+          border: "1px solid #f0f0f0",
+          width: "100%",
+          marginBottom: "20px",
+          marginTop: "20px",
+        }}
+      />
 
       <Box sx={{ mb: 5 }}></Box>
 
@@ -376,7 +406,10 @@ const MintAndLaunch = () => {
                 variant="contained"
                 color="primary"
                 onClick={() => handleOpen("presale")}
-                disabled={!selection?.enablePresale || isPresaleActive()}
+                disabled={
+                  selection?.enablePresale &&
+                  selection?.presaleAddressess.length > 0
+                }
               >
                 Presale
               </Button>
@@ -384,7 +417,10 @@ const MintAndLaunch = () => {
                 variant="contained"
                 color="secondary"
                 onClick={() => handleOpen("whitelist")}
-                disabled={!selection?.enableWhitelist || !isWhitelistActive()}
+                disabled={
+                  selection?.enableWhitelist &&
+                  selection?.whitelistAddresses?.length > 0
+                }
               >
                 Whitelist
               </Button>
@@ -446,8 +482,12 @@ const MintAndLaunch = () => {
         <Box sx={modalStyle}>
           {formType === "presale" && <PreSaleForm />}
           {formType === "whitelist" && <WhitelistForm />}
-          {formType === "addPresaleUsers" && <AddPresaleUsers handleClose={handleClose} />}
-          {formType === "addWhitelistUsers" && <AddWhitelistUsers handleClose={handleClose} />}
+          {formType === "addPresaleUsers" && (
+            <AddPresaleUsers handleClose={handleClose} />
+          )}
+          {formType === "addWhitelistUsers" && (
+            <AddWhitelistUsers handleClose={handleClose} />
+          )}
           {formType === "createNgCollection" && <CreateNGCollectionForm />}
           {formType === "unrevealedTokens" && <UnrevealedTokensForm />}
           {formType === "policyManagement" && <PolicyManagementForm />}
