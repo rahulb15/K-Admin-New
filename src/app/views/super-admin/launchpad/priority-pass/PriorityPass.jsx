@@ -203,6 +203,7 @@ const PriorityPass = () => {
                 variant="contained"
                 color="primary"
                 onClick={() => handleOpen("addUser")}
+                disabled={true}
               >
                 Add Priority Users
               </Button>

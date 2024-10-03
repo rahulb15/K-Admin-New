@@ -809,6 +809,7 @@ import {
   Card,
   CardMedia,
   IconButton,
+  CircularProgress,
 } from "@mui/material";
 import CloudUploadIcon from "@mui/icons-material/CloudUpload";
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -937,7 +938,8 @@ const CreateCollectionForm = (props) => {
   });
 
   const dispatch = useDispatch();
-  const [createCollection] = useCreateCollectionMutation();
+  const [createCollection, { isLoading, error }] =
+    useCreateCollectionMutation();
   const { user } = useAuth();
 
   const collectionRequestUriList = watch("collectionRequestUriList");
@@ -1499,8 +1501,10 @@ const CreateCollectionForm = (props) => {
               color="primary"
               size="large"
               fullWidth
+              disabled={isLoading}
             >
-              Create Collection
+              {/* Create Collection */}
+              {isLoading ? <CircularProgress size={24} /> : "Create Collection"}
             </Button>
           </Grid>
         </Grid>
@@ -1520,7 +1524,8 @@ const UnrevealedTokensForm = (props) => {
     resolver: yupResolver(unRevealedTokensSchema),
   });
   const dispatch = useDispatch();
-  const [unRevealedTokens] = useUnrevealedTokensMutation();
+  const [unRevealedTokens, { isLoading, error }] =
+    useUnrevealedTokensMutation();
   const { user } = useAuth();
   const [tableData, setTableData] = useState([]);
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -1599,7 +1604,15 @@ const UnrevealedTokensForm = (props) => {
             />
           )}
         />
-        <Button type="submit">Submit</Button>
+        {/* <Button type="submit">Submit</Button> */}
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isLoading}
+        >
+          {isLoading ? <CircularProgress size={24} /> : "Submit"}
+        </Button>
       </form>
 
       <UnrevealedTokensModal

@@ -12,10 +12,12 @@ import {
   Paper,
   Button,
   Box,
+  CircularProgress,
 } from "@mui/material";
 import { useSyncWithNgMutation } from "services/prioritypass.service";
 import useAuth from "app/hooks/useAuth";
 import nftServices from "services/nftServices.tsx";
+import Swal from "sweetalert2";
 
 const UnrevealedTokensModal = ({ open, handleClose, data }) => {
   const { login, user } = useAuth();
@@ -38,7 +40,7 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
 
   console.log("data", data);
   const [selectedIds, setSelectedIds] = React.useState([]);
-  const [syncWithNg] = useSyncWithNgMutation();
+  const [syncWithNg, { isLoading, error }] = useSyncWithNgMutation();
 
   const toggleSelection = (id) => {
     setSelectedIds((prevIds) =>
@@ -179,17 +181,52 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
         console.log("data", data);
         const result = await nftServices.updateNFT(data);
         console.log("result", result);
-        if (result) {
+        // {
+        //   status: 'success',
+        //   message: 'Updated',
+        //   descripti
+        if (result.status === "success") {
+          Swal.fire({
+            icon: "success",
+            title: "Success",
+            text: "NFT created successfully",
+          });
+
           handleClose();
         } else {
           console.log("Error in creating NFT");
+          Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: `${
+              result?.message || "Failed to create NFT"
+            }. Please try again.`,
+          });
+          handleClose();
         }
         // handleClose();
       } else {
         console.log("Error in syncing with NG");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `${
+            response?.data?.result?.message || "Failed to sync with NG"
+          }. Please try again.`,
+        });
+        handleClose();
       }
     } catch (error) {
       console.error("Error syncing:", error);
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `${
+          error?.message || "Failed to sync with NG"
+        }. Please try again.`,
+      });
+
+      handleClose();
     }
   };
 
@@ -242,16 +279,29 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
           </Table>
         </TableContainer>
         <Box sx={{ display: "flex", justifyContent: "space-between" }}>
-          <Button onClick={handleClose} variant="outlined">
+          <Button onClick={handleClose} variant="outlined" disabled={isLoading}>
             Close
           </Button>
-          <Button
+          {/* <Button
             onClick={handleSyncWithNg}
             variant="contained"
             color="primary"
             disabled={selectedIds.length === 0}
           >
             Bulk Sync ({selectedIds.length})
+          </Button> */}
+
+          <Button
+            onClick={handleSyncWithNg}
+            variant="contained"
+            color="primary"
+            disabled={selectedIds.length === 0 || isLoading}
+          >
+            {isLoading ? (
+              <CircularProgress size={24} />
+            ) : (
+              `Bulk Sync (${selectedIds.length})`
+            )}
           </Button>
         </Box>
       </DialogContent>

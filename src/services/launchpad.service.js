@@ -533,6 +533,112 @@ export const launchpadApi = createApi({
       },
     }),
 
+    addWlAccounts: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, accounts, wallet } = args;
+        console.log("args", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.add-wl-accounts ${JSON.stringify(collectionName)} 
+                          ${JSON.stringify(accounts)} 
+                          (read-keyset "guard"))`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
+    addPresaleAccounts: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, accounts, wallet } = args;
+        console.log("args", args);
+        const account = await getColCreator(collectionName);
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(free.lptest001.add-presale-accounts ${JSON.stringify(collectionName)} 
+                          ${JSON.stringify(accounts)} 
+                          (read-keyset "guard"))`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
     createAirdrop: builder.mutation({
       async queryFn(args) {
         const { createAirdropCol, createAirdropAdd, wallet } = args;
@@ -1098,6 +1204,8 @@ export const {
   useCollectionIdMutation,
   useCreatePresaleMutation,
   useCreateWlMutation,
+  useAddWlAccountsMutation,
+  useAddPresaleAccountsMutation,
   useCreateAirdropMutation,
   useUnrevealedTokensMutation,
   useSyncWithNgMutation,

@@ -1,6 +1,6 @@
 import React from "react";
 import { useForm, Controller } from "react-hook-form";
-import { Button, TextField, Stack } from "@mui/material";
+import { Button, TextField, Stack,CircularProgress, Typography } from "@mui/material";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
@@ -454,7 +454,7 @@ const CreateNGCollectionForm = (props) => {
     resolver: yupResolver(createNgCollectionSchema),
   });
   const dispatch = useDispatch();
-  const [createNgCollection] = useCreateNgCollectionMutation();
+  const [createNgCollection, { isLoading, error }] = useCreateNgCollectionMutation();
   const { login, user } = useAuth();
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
@@ -554,7 +554,15 @@ const CreateNGCollectionForm = (props) => {
           />
         )}
       />
-      <Button type="submit">Submit</Button>
+      {/* <Button type="submit">Submit</Button> */}
+      <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isLoading}
+        >
+          {isLoading ? <CircularProgress size={24} /> : "Submit"}
+        </Button>
     </form>
   );
 };
@@ -573,7 +581,7 @@ const UnrevealedTokensForm = (props) => {
     resolver: yupResolver(unRevealedTokensSchema),
   });
   const dispatch = useDispatch();
-  const [unRevealedTokens] = useUnrevealedTokensMutation();
+  const [unRevealedTokens,  { isLoading, error }] = useUnrevealedTokensMutation();
   const { user } = useAuth();
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
@@ -655,7 +663,15 @@ const UnrevealedTokensForm = (props) => {
             />
           )}
         />
-        <Button type="submit">Submit</Button>
+        {/* <Button type="submit">Submit</Button> */}
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          disabled={isLoading}
+        >
+          {isLoading ? <CircularProgress size={24} /> : "Submit"}
+        </Button>
       </form>
 
       <UnrevealedTokensModal
