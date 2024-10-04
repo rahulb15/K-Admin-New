@@ -32,6 +32,20 @@ const updateNFT = async (data: any) => {
   }
 }
 
+const updateLaunchapdNFT = async (data: any) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.put(`${url}/nft/updateLaunchpad`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+}
+
 // post updateRevealedNFTs
 const updateRevealedNFTs = async (data: any) => {
   try {
@@ -57,6 +71,7 @@ const updateRevealedNFTs = async (data: any) => {
 export default {
     createNFT,
     updateNFT,
+    updateLaunchapdNFT,
     updateRevealedNFTs
 
 };

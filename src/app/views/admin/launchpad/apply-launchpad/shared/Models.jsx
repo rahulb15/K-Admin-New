@@ -190,7 +190,7 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
           wallet: user?.walletAddress,
         };
         console.log("data", data);
-        const result = await nftServices.updateNFT(data);
+        const result = await nftServices.updateLaunchapdNFT(data);
         console.log("result", result);
         if (result.status === "success") {
           Swal.fire({
