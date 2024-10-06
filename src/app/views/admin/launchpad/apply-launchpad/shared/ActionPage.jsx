@@ -345,6 +345,10 @@ const MintAndLaunch = () => {
     <Box p={3}>
       <Typography variant="h4" gutterBottom sx={{ mb: 5 }}>
         PlayGround Area
+        <span style={{ fontSize: "2rem", color: "#777" }}>
+          {" "}
+          - {selection?.collectionName}
+        </span>
       </Typography>
       <hr
         style={{
