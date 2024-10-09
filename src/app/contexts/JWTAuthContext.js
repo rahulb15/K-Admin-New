@@ -1,11 +1,11 @@
-import { Pact, createClient } from "@kadena/client"; // CUSTOM COMPONENT
+import { Pact, createClient, signWithChainweaver } from "@kadena/client"; // CUSTOM COMPONENT
 import { MatLoading } from "app/components";
 import axios from "axios";
 import { NETWORK } from "../../constants/contextConstants";
 import React, { createContext, useEffect, useReducer, useState } from "react";
 import userServices from "services/userServices.tsx";
 import ChainweaverModal from "app/components/ChainweaverModal";
-import { NETWORKID } from "../../constants/contextConstants";
+import { NETWORKID, CHAIN_ID } from "../../constants/contextConstants";
 console.log(NETWORKID, "NETWORKID");
 const url = process.env.REACT_APP_API_URL;
 // const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
@@ -174,10 +174,12 @@ export const AuthProvider = ({ children }) => {
     console.log(admin);
     const pactCode = `(coin.details ${JSON.stringify(admin)})`;
     console.log(pactCode);
+    console.log(NETWORK);
+    console.log(CHAIN_ID);
 
     const transaction = Pact.builder
       .execution(pactCode)
-      .setMeta({ chainId: "1" })
+      .setMeta({ chainId: CHAIN_ID })
       .createTransaction();
 
     const response = await client.local(transaction, {
