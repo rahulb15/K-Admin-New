@@ -13,24 +13,29 @@ import {
   CHAIN_ID,
   NETWORK,
 } from "../constants/contextConstants";
+import priorityPassPactFunctions from "utils/pactAdminPriorityPassFunctions";
 
 const API_HOST = NETWORK;
 const client = createClient(API_HOST);
 const signWithChainweaver = createSignWithChainweaver();
 const eckoWallet = createEckoWalletQuicksign();
 
-const admin =
-  "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
+// const admin =
+//   "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
+const admin = process.env.REACT_APP_ADMIN_ADDRESS || "";
+
 
   const getColCreator = async (colName) => {
     console.log("colName", colName);
-    const pactCode = `(free.lptest001.get-collection-creator ${JSON.stringify(
-      colName
-    )})`;
+    // const pactCode = `(free.lptest001.get-collection-creator ${JSON.stringify(
+    //   colName
+    // )})`;
+    const pactCode = `(${priorityPassPactFunctions.getCollectionCreator} ${JSON.stringify(colName)})`;
+
   
     const transaction = Pact.builder
       .execution(pactCode)
-      .setMeta({ chainId: "1" })
+      .setMeta({ chainId: CHAIN_ID })
       .createTransaction();
   
     const response = await client.local(transaction, {
@@ -56,10 +61,11 @@ const signFunction = async (signedTx) => {
   return response;
 };
 const collection_id = async () => {
-  const pactCode = `(free.kmpasstest003.get-collection-id)`;
+  // const pactCode = `(free.kmpasstest003.get-collection-id)`;
+  const pactCode = `(${priorityPassPactFunctions.getCollectionId})`;
   const transaction = Pact.builder
     .execution(pactCode)
-    .setMeta({ chainId: "1" })
+    .setMeta({ chainId: CHAIN_ID })
     .setNetworkId(NETWORKID)
     .createTransaction();
 
@@ -99,7 +105,8 @@ export const priorityPassApi = createApi({
         const account = creator;
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
-        const pactCode = `(free.kmpasstest003.create-collection 
+        // const pactCode = `(free.kmpasstest003.create-collection 
+        const pactCode = `(${priorityPassPactFunctions.createCollection}
                             ${totalSupply}
                             (read-keyset 'guard)
                             ${JSON.stringify(account)}
@@ -113,8 +120,10 @@ export const priorityPassApi = createApi({
           .addData("guard", guard)
           .addSigner(publicKey, (withCapability) => [
             withCapability("coin.GAS"),
-            withCapability("free.kmpasstest003.IS_ADMIN"),
-            withCapability("free.kmpasstest003.CREATE-COLLECTION"),
+            // withCapability("free.kmpasstest003.IS_ADMIN"),
+            // withCapability("free.kmpasstest003.CREATE-COLLECTION"),
+            withCapability(priorityPassPactFunctions.isAdmin),
+            withCapability(priorityPassPactFunctions.createCollectionCapability),
           ])
           .setMeta({
             creationTime: creationTime(),
@@ -167,14 +176,16 @@ export const priorityPassApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        const pactCode = `(free.kmpasstest003.get-unrevealed-tokens-for-collection)`;
+        // const pactCode = `(free.kmpasstest003.get-unrevealed-tokens-for-collection)`;
+        const pactCode = `(${priorityPassPactFunctions.getUnrevealedTokensForCollection})`;
 
         const txn = Pact.builder
           .execution(pactCode)
           .addData("guard", guard)
           .addSigner(publicKey, (withCapability) => [
             withCapability("coin.GAS"),
-            withCapability("free.kmpasstest003.IS_ADMIN"),
+            // withCapability("free.kmpasstest003.IS_ADMIN"),
+            withCapability(priorityPassPactFunctions.isAdmin),
           ])
           .setMeta({
             creationTime: creationTime(),
@@ -272,7 +283,8 @@ export const priorityPassApi = createApi({
         const formattedSyncTkns = `[${syncTkns}]`;
         const accIds = formattedSyncTkns;
         console.log("Account IDs", accIds);
-        const pactCode = `(free.kmpasstest003.bulk-sync-with-ng ${accIds})`;
+        // const pactCode = `(free.kmpasstest003.bulk-sync-with-ng ${accIds})`;
+        const pactCode = `(${priorityPassPactFunctions.bulkSyncWithNg} ${accIds})`;
         console.log("pactCode", pactCode);
 
         const txn = Pact.builder
@@ -331,7 +343,8 @@ export const priorityPassApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        const pactCode = `(free.lptest001.add-policies ${JSON.stringify(
+        // const pactCode = `(free.lptest001.add-policies ${JSON.stringify(
+        const pactCode = `(${priorityPassPactFunctions.addPolicies} ${JSON.stringify(
           collectionName
         )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
 
@@ -384,7 +397,8 @@ export const priorityPassApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        const pactCode = `(free.lptest001.replace-policies ${JSON.stringify(
+        // const pactCode = `(free.lptest001.replace-policies ${JSON.stringify(
+        const pactCode = `(${priorityPassPactFunctions.replacePolicies} ${JSON.stringify(
           collectionName
         )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
 
@@ -434,12 +448,13 @@ export const priorityPassApi = createApi({
         console.log("collectionName", collectionName);
         const colId = await collection_id();
         console.log(colId);
-        const pactCode = `(free.kmpasstest003.get-policies-of-collection)`;
+        // const pactCode = `(free.kmpasstest003.get-policies-of-collection)`;
+        const pactCode = `(${priorityPassPactFunctions.getPoliciesOfCollection})`;
 
 
         const transaction = Pact.builder
           .execution(pactCode)
-          .setMeta({ chainId: "1" })
+          .setMeta({ chainId: CHAIN_ID })
           .setNetworkId(NETWORKID)
           .createTransaction();
 
@@ -474,7 +489,8 @@ export const priorityPassApi = createApi({
         
         // Modified part: Format priorityUsers with quotes and without commas
         const formattedUsers = priorityUsers.map(user => `"${user}"`).join(" ");
-        const pactCode = `(free.lptest001.add-priority-users [${formattedUsers}])`;
+        // const pactCode = `(free.lptest001.add-priority-users [${formattedUsers}])`;
+        const pactCode = `(${priorityPassPactFunctions.addPriorityUsers} [${formattedUsers}])`;
         console.log("pactCode", pactCode);
     
         const txn = Pact.builder
@@ -482,7 +498,8 @@ export const priorityPassApi = createApi({
           .addData("guard", guard)
           .addSigner(publicKey, (withCapability) => [
             withCapability("coin.GAS"),
-            withCapability("free.lptest001.PRIORITY"),
+            // withCapability("free.lptest001.PRIORITY"),
+            withCapability(priorityPassPactFunctions.priorityCapability),
           ])
           .setMeta({
             creationTime: creationTime(),
@@ -530,8 +547,7 @@ export const priorityPassApi = createApi({
       async queryFn(args) {
         const { price, wallet } = args;
         console.log("updatePrice args:", args);
-        const account =
-          "k:56609bf9d1983f0c13aaf3bd3537fe00db65eb15160463bb641530143d4e9bcf";
+        const account = admin;
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
@@ -547,7 +563,8 @@ export const priorityPassApi = createApi({
         };
         calculateDecimal(price);
 
-        const pactCode = `(free.kmpasstest003.update-price ${decimalPrice})`;
+        // const pactCode = `(free.kmpasstest003.update-price ${decimalPrice})`;
+        const pactCode = `(${priorityPassPactFunctions.updatePrice} ${decimalPrice})`;
 
         const txn = Pact.builder
           .execution(pactCode)

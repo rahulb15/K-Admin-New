@@ -5,9 +5,11 @@ import { NETWORK } from "../../constants/contextConstants";
 import React, { createContext, useEffect, useReducer, useState } from "react";
 import userServices from "services/userServices.tsx";
 import ChainweaverModal from "app/components/ChainweaverModal";
-const url = process.env.REACT_APP_API_URL;
-const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
+import { NETWORKID } from "../../constants/contextConstants";
 console.log(NETWORKID, "NETWORKID");
+const url = process.env.REACT_APP_API_URL;
+// const NETWORKID = process.env.REACT_APP_KDA_NETWORK_ID;
+// console.log(NETWORKID, "NETWORKID");
 
 const API_HOST = NETWORK;
 const client = createClient(API_HOST);
@@ -56,7 +58,10 @@ const AuthContext = createContext({
 export const AuthProvider = ({ children }) => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [chainweaverModalOpen, setChainweaverModalOpen] = useState(false);
-  const [chainweaverAddressPromiseResolver, setChainweaverAddressPromiseResolver] = useState(null);
+  const [
+    chainweaverAddressPromiseResolver,
+    setChainweaverAddressPromiseResolver,
+  ] = useState(null);
 
   const openChainweaverModal = () => {
     return new Promise((resolve) => {
@@ -336,7 +341,7 @@ export const AuthProvider = ({ children }) => {
   //   // const response = await axios.post("/api/auth/login", { email, password });
   //   // const { user } = response.data;
   // };
-  
+
   const login = async (username, password) => {
     try {
       // First, check username and password to determine wallet type
@@ -344,14 +349,14 @@ export const AuthProvider = ({ children }) => {
         username,
         password,
       });
-  
+
       if (checkResponse.data.status !== "success") {
         return checkResponse.data;
       }
-  
+
       const { walletName } = checkResponse.data.data;
       console.log(walletName);
-  
+
       let walletResponse;
       if (walletName === "Chainweaver") {
         // Open modal for Chainweaver address input
@@ -365,20 +370,22 @@ export const AuthProvider = ({ children }) => {
 
       console.log(walletResponse);
 
-  
       if (walletResponse.status !== "success") {
         return walletResponse;
       }
-  
+
       // Proceed with login
       const loginData = {
         username,
         password,
-        walletAddress: walletName === "Chainweaver" ? walletResponse.data.account : walletResponse.account.account,
+        walletAddress:
+          walletName === "Chainweaver"
+            ? walletResponse.data.account
+            : walletResponse.account.account,
       };
-  
+
       const user = await axios.post(`${url}/admin/login`, loginData);
-  
+
       if (user.data.status === "success") {
         if (!user.data.data.is2FAEnabled) {
           const twofadata = await enable2FA(user.data.token);
@@ -403,11 +410,15 @@ export const AuthProvider = ({ children }) => {
         return user.data;
       }
     } catch (error) {
-      return error.response?.data || { status: "error", message: "An unexpected error occurred" };
+      return (
+        error.response?.data || {
+          status: "error",
+          message: "An unexpected error occurred",
+        }
+      );
     }
   };
-  
-  
+
   const register = async (email, username, password) => {
     const response = await axios.post("/api/auth/register", {
       email,
