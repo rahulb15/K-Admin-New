@@ -36,13 +36,42 @@ const signFunction = async (signedTx) => {
   return response;
 };
 
+let uriRndList = [
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/1.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/2.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/3.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/4.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/5.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/6.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/7.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/8.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/9.json",
+  "https://gateway.pinata.cloud/ipfs/QmUUidPw6CaANMidfF6ZmU6B5AHqwzpG6qRXGBxapzZj5Z/10.json",
+];
+
+// Function to select random URIs for the given token IDs
+function selectRandomUris(uriArray, tokenIds) {
+  const selectedUris = [];
+  for (let i = 0; i < tokenIds.length; i++) {
+    if (uriArray.length === 0) {
+      console.error("No URIs available for selection.");
+      break; // Exit if there are no more URIs
+    }
+    const randomIndex = Math.floor(Math.random() * uriArray.length);
+    selectedUris.push(uriArray[randomIndex]);
+    uriArray.splice(randomIndex, 1); // Remove selected URI from the array
+  }
+  return selectedUris;
+}
+
 const getColCreator = async (colName) => {
   console.log("colName", colName);
   // const pactCode = `(free.lptest001.get-collection-creator ${JSON.stringify(
   //   colName
   // )})`;
-  const pactCode = `(${launchpadPactFunctions.getCollectionCreator} ${JSON.stringify(colName)})`;
-
+  const pactCode = `(${
+    launchpadPactFunctions.getCollectionCreator
+  } ${JSON.stringify(colName)})`;
 
   const transaction = Pact.builder
     .execution(pactCode)
@@ -67,7 +96,9 @@ const collectionId = async (colNameId) => {
   // const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(
   //   colNameId
   // )})`;
-  const pactCode = `(${launchpadPactFunctions.getCollectionId} ${JSON.stringify(colNameId)})`;
+  const pactCode = `(${launchpadPactFunctions.getCollectionId} ${JSON.stringify(
+    colNameId
+  )})`;
 
   const transaction = Pact.builder
     .execution(pactCode)
@@ -88,11 +119,12 @@ const collectionId = async (colNameId) => {
   }
 };
 
-
 const getRoyaltyAddress = async (colName) => {
   // const colName = "K/C-CW-105";
   // const pactCode = `(free.lptest001.get-royalty-info ${JSON.stringify(colName)} "account")`;
-  const pactCode = `(${launchpadPactFunctions.getRoyaltyInfo} ${JSON.stringify(colName)} "account")`;
+  const pactCode = `(${launchpadPactFunctions.getRoyaltyInfo} ${JSON.stringify(
+    colName
+  )} "account")`;
 
   const transaction = Pact.builder
     .execution(pactCode)
@@ -118,7 +150,9 @@ const getRoyaltyPerc = async (colName) => {
   // const colName = "K/C-CW-105";
 
   // const pactCode = `(free.lptest001.get-royalty-info ${JSON.stringify(colName)} "rate")`;
-  const pactCode = `(${launchpadPactFunctions.getRoyaltyInfo} ${JSON.stringify(colName)} "rate")`;
+  const pactCode = `(${launchpadPactFunctions.getRoyaltyInfo} ${JSON.stringify(
+    colName
+  )} "rate")`;
 
   const transaction = Pact.builder
     .execution(pactCode)
@@ -173,7 +207,7 @@ export const launchpadApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // const pactCode = `(free.lptest001.nft-collection-request 
+        // const pactCode = `(free.lptest001.nft-collection-request
         const pactCode = `(${launchpadPactFunctions.nftCollectionRequest}
           ${JSON.stringify(collectionRequestName)}  
           ${JSON.stringify(collectionRequestSymbol)}  
@@ -260,7 +294,9 @@ export const launchpadApi = createApi({
         // const pactCode = `(free.lptest001.launch-collection ${JSON.stringify(
         //   launchCollectionName
         // )})`;
-        const pactCode = `(${launchpadPactFunctions.launchCollection} ${JSON.stringify(launchCollectionName)})`;
+        const pactCode = `(${
+          launchpadPactFunctions.launchCollection
+        } ${JSON.stringify(launchCollectionName)})`;
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -324,7 +360,9 @@ export const launchpadApi = createApi({
         // const pactCode = `(free.lptest001.create-ng-collection ${JSON.stringify(
         //   collectionName
         // )}
-        const pactCode = `(${launchpadPactFunctions.createNgCollection} ${JSON.stringify(collectionName)}
+        const pactCode = `(${
+          launchpadPactFunctions.createNgCollection
+        } ${JSON.stringify(collectionName)}
                                                                     ${JSON.stringify(
                                                                       account
                                                                     )}
@@ -383,7 +421,9 @@ export const launchpadApi = createApi({
         // const pactCode = `(free.lptest001.get-collection-id ${JSON.stringify(
         //   colNameId
         // )})`;
-        const pactCode = `(${launchpadPactFunctions.getCollectionId} ${JSON.stringify(colNameId)})`;
+        const pactCode = `(${
+          launchpadPactFunctions.getCollectionId
+        } ${JSON.stringify(colNameId)})`;
 
         const transaction = Pact.builder
           .execution(pactCode)
@@ -422,7 +462,7 @@ export const launchpadApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // const pactCode = `(free.lptest001.create-presale 
+        // const pactCode = `(free.lptest001.create-presale
         const pactCode = `(${launchpadPactFunctions.createPresale}
           ${JSON.stringify(account)} 
           (read-keyset "guard")  
@@ -495,7 +535,7 @@ export const launchpadApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // const pactCode = `(free.lptest001.create-whitelist 
+        // const pactCode = `(free.lptest001.create-whitelist
         const pactCode = `(${launchpadPactFunctions.createWhitelist}
           ${JSON.stringify(createWlCol)} 
           ${JSON.stringify(account)}
@@ -555,13 +595,14 @@ export const launchpadApi = createApi({
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // const pactCode = `(free.lptest001.add-wl-accounts ${JSON.stringify(collectionName)} 
-        //                   ${JSON.stringify(accounts)} 
+        // const pactCode = `(free.lptest001.add-wl-accounts ${JSON.stringify(collectionName)}
+        //                   ${JSON.stringify(accounts)}
         //                   (read-keyset "guard"))`;
-        const pactCode = `(${launchpadPactFunctions.addWlAccounts} ${JSON.stringify(collectionName)}
+        const pactCode = `(${
+          launchpadPactFunctions.addWlAccounts
+        } ${JSON.stringify(collectionName)}
                           ${JSON.stringify(accounts)}
                           (read-keyset "guard"))`;
-                          
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -584,7 +625,7 @@ export const launchpadApi = createApi({
             preflight: false,
             signatureVerification: false,
           });
-          console.log("localResponse.result.status",localResponse )
+          console.log("localResponse.result.status", localResponse);
 
           if (localResponse.result.status === "success") {
             let signedTx;
@@ -615,7 +656,9 @@ export const launchpadApi = createApi({
         const guard = { keys: [publicKey], pred: "keys-all" };
 
         // const pactCode = `(free.lptest001.add-presale-accounts ${JSON.stringify(collectionName)}
-        const pactCode = `(${launchpadPactFunctions.addPresaleAccounts} ${JSON.stringify(collectionName)} 
+        const pactCode = `(${
+          launchpadPactFunctions.addPresaleAccounts
+        } ${JSON.stringify(collectionName)} 
                           ${JSON.stringify(accounts)} 
                           (read-keyset "guard"))`;
 
@@ -723,9 +766,9 @@ export const launchpadApi = createApi({
         const guard = { keys: [publicKey], pred: "keys-all" };
 
         // const pactCode = `(free.lptest001.get-unrevealed-tokens-for-collection ${JSON.stringify(
-        const pactCode = `(${launchpadPactFunctions.getUnrevealedTokensForCollection} ${JSON.stringify(
-          unrevealedColName
-        )} (read-keyset  "guard"))`;
+        const pactCode = `(${
+          launchpadPactFunctions.getUnrevealedTokensForCollection
+        } ${JSON.stringify(unrevealedColName)} (read-keyset  "guard"))`;
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -765,8 +808,18 @@ export const launchpadApi = createApi({
 
     syncWithNg: builder.mutation({
       async queryFn(args, api, extraOptions, baseQuery) {
-        const { syncColName, syncTkns, wallet } = args;
+        const { syncColName, syncTkns, wallet, selectedUris } = args;
         console.log("args", args);
+
+        // {
+        //   syncColName: 'KM-Monkey-Test001',
+        //   syncTkns: '1',
+        //   selectedUris: [
+
+        //       'https://ipfs.filebase.io/ipfs/QmSM2kTZ9ZG9UZi9sL8bnWwbse6iKqX6c1iijZCW4GW6Xs/1.json'
+        //   ],
+        //   wallet: 'ecko'
+        // }
         // const colId = await api
         //   .dispatch(
         //     launchpadApi.endpoints.collectionId.initiate({
@@ -781,24 +834,24 @@ export const launchpadApi = createApi({
 
         const royaltyAddress = await getRoyaltyAddress(syncColName);
         const royaltyPerc = await getRoyaltyPerc(syncColName);
-    
+
         console.log(
           `royaltyAddress: ${royaltyAddress}, royaltyPerc: ${royaltyPerc}`
         );
-    
+
         const publicKey = account.slice(2, account.length);
         const publicKeyRoyalty = royaltyAddress.slice(2, royaltyAddress.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
         const guardRoyalty = { keys: [publicKeyRoyalty], pred: "keys-all" };
         const formattedSyncTkns = `[${syncTkns}]`;
-
-        // '(free.lptest001.bulk-sync-with-ng "monkeyaz9" [1 2])'
-
+        const formattedUris = selectedUris.map((uri) => `"${uri}"`).join(" ");
 
         // const pactCode = `(free.lptest001.bulk-sync-with-ng ${JSON.stringify(
-        const pactCode = `(${launchpadPactFunctions.bulkSyncWithNg} ${JSON.stringify(
-          syncColName
-        )} ${formattedSyncTkns})`;
+        const pactCode = `(${
+          launchpadPactFunctions.bulkSyncWithNg
+        } ${JSON.stringify(syncColName)} ${formattedSyncTkns}
+        [${formattedUris}]
+        )`;
 
         console.log(pactCode);
 
@@ -849,7 +902,7 @@ export const launchpadApi = createApi({
             .setNetworkId(NETWORKID)
             .createTransaction();
         }
-    
+
         console.log("syncWithNg", txn);
         console.log("sign");
 
@@ -884,7 +937,7 @@ export const launchpadApi = createApi({
         try {
           const { account } = args;
           console.log("account", account);
-    
+
           // const pactCode = `(coin.get-balance (read-string "account"))`;
           // const pactCode = `(${launchpadPactFunctions.getBalance} (read-string ${JSON.stringify(account)}))`;
           const pactCode = `(${launchpadPactFunctions.getBalance} (read-string "account"))`;
@@ -894,16 +947,16 @@ export const launchpadApi = createApi({
             .addData("account", account)
             .setNetworkId(NETWORKID)
             .createTransaction();
-    
+
           const staticClient = createClient(API_HOST);
-    
+
           const response = await staticClient.local(transaction, {
             preflight: false,
             signatureVerification: false,
           });
-    
+
           console.log(response);
-          return { data: response.result.data }; 
+          return { data: response.result.data };
         } catch (error) {
           return { error: error.toString() };
         }
@@ -921,7 +974,9 @@ export const launchpadApi = createApi({
         const guard = { keys: [receiverKey], pred: "keys-all" };
 
         // const pactCode = `(coin.transfer-create (read-string "sender") (read-string "receiver") (read-keyset "guard") ${parseFloat(
-        const pactCode = `(${launchpadPactFunctions.transferCreate} (read-string "sender") (read-string "receiver") (read-keyset "guard") ${parseFloat(
+        const pactCode = `(${
+          launchpadPactFunctions.transferCreate
+        } (read-string "sender") (read-string "receiver") (read-keyset "guard") ${parseFloat(
           amount
         ).toFixed(1)})`;
         const txn = Pact.builder
@@ -1009,7 +1064,7 @@ export const launchpadApi = createApi({
             } else if (wallet === "CW") {
               signedTx = await signWithChainweaver(txn);
             } else {
-              throw new Error('Unsupported wallet');
+              throw new Error("Unsupported wallet");
             }
 
             const response = await signFunction(signedTx);
@@ -1035,7 +1090,11 @@ export const launchpadApi = createApi({
         const guard = { keys: [publicKey], pred: "keys-all" };
 
         // const pactCode = `(free.lptest001.add-policies ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
-        const pactCode = `(${launchpadPactFunctions.addPolicies} ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+        const pactCode = `(${
+          launchpadPactFunctions.addPolicies
+        } ${JSON.stringify(
+          collectionName
+        )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -1087,7 +1146,11 @@ export const launchpadApi = createApi({
         const guard = { keys: [publicKey], pred: "keys-all" };
 
         // const pactCode = `(free.lptest001.replace-policies ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
-        const pactCode = `(${launchpadPactFunctions.replacePolicies} ${JSON.stringify(collectionName)} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
+        const pactCode = `(${
+          launchpadPactFunctions.replacePolicies
+        } ${JSON.stringify(
+          collectionName
+        )} (read-keyset 'guard) ${JSON.stringify(collectionRequestPolicy)})`;
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -1134,26 +1197,26 @@ export const launchpadApi = createApi({
         const { collectionName } = args;
         console.log("collectionName", collectionName);
         // const pactCode = `(free.lptest001.get-policy-of-collection ${JSON.stringify(
-        const pactCode = `(${launchpadPactFunctions.getPolicyOfCollection} ${JSON.stringify(
-          collectionName
-        )})`;
-  
+        const pactCode = `(${
+          launchpadPactFunctions.getPolicyOfCollection
+        } ${JSON.stringify(collectionName)})`;
+
         const transaction = Pact.builder
           .execution(pactCode)
           .setMeta({ chainId: CHAIN_ID })
           .setNetworkId(NETWORKID)
           .createTransaction();
-  
+
         try {
           const response = await client.local(transaction, {
             preflight: false,
             signatureVerification: false,
           });
-  
+
           if (response.result.status === "success") {
             let policies = response.result.data;
             console.log("Policies in service:", policies);
-            return { data: policies };  // Return the policies data
+            return { data: policies }; // Return the policies data
           } else {
             throw new Error(response.result.error);
           }
@@ -1192,7 +1255,7 @@ export const launchpadApi = createApi({
           .setNetworkId(NETWORKID)
           .createTransaction();
 
-          console.log("updatePrice txn", txn);
+        console.log("updatePrice txn", txn);
 
         try {
           const client = new Pact.Pact(NETWORKID);
@@ -1220,13 +1283,6 @@ export const launchpadApi = createApi({
         }
       },
     }),
-
-  
-
-
-
-
-
   }),
 });
 

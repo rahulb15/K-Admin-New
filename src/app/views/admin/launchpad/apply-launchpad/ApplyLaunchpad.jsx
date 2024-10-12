@@ -43,7 +43,7 @@ export default function ApplyLaunchpad() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(5);
+  const [limit, setLimit] = useState(50);
   const [search, setSearch] = useState("");
   const [data, setData] = useState([]);
   const [refresh, setRefresh] = useState(false);

@@ -61,6 +61,35 @@ const updateRevealedNFTs = async (data: any) => {
   }
 }
 
+const getRandomUris = async (data: any) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(`${url}/nft/randomUris`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+}
+
+// updateNFTWithRandomUri
+const updateNFTWithRandomUri = async (data: any) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.put(`${url}/nft/updateRandomUri`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    });
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+}
+
 
 
 
@@ -72,6 +101,8 @@ export default {
     createNFT,
     updateNFT,
     updateLaunchapdNFT,
-    updateRevealedNFTs
+    updateRevealedNFTs,
+    getRandomUris,
+    updateNFTWithRandomUri
 
 };

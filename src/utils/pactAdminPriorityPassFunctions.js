@@ -4,16 +4,16 @@ const testnetFunctions = {
     createCollection: 'free.kmpasstest003.create-collection',
     getUnrevealedTokensForCollection: 'free.kmpasstest003.get-unrevealed-tokens-for-collection',
     bulkSyncWithNg: 'free.kmpasstest003.bulk-sync-with-ng',
-    addPolicies: 'free.lptest001.add-policies',
-    replacePolicies: 'free.lptest001.replace-policies',
+    addPolicies: 'free.lptest003.add-policies',
+    replacePolicies: 'free.lptest003.replace-policies',
     getPoliciesOfCollection: 'free.kmpasstest003.get-policies-of-collection',
-    addPriorityUsers: 'free.lptest001.add-priority-users',
+    addPriorityUsers: 'free.lptest003.add-priority-users',
     updatePrice: 'free.kmpasstest003.update-price',
     getCollectionId: 'free.kmpasstest003.get-collection-id',
-    getCollectionCreator: 'free.lptest001.get-collection-creator',
+    getCollectionCreator: 'free.lptest003.get-collection-creator',
     isAdmin: 'free.kmpasstest003.IS_ADMIN',
     createCollectionCapability: 'free.kmpasstest003.CREATE-COLLECTION',
-    priorityCapability: 'free.lptest001.PRIORITY'
+    priorityCapability: 'free.lptest003.PRIORITY'
 };
 
 const mainnetFunctions = {

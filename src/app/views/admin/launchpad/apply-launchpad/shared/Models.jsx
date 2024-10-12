@@ -54,9 +54,76 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
     const syncColName = data[0]["collection-name"];
     console.log("syncColName", syncColName);
     try {
+
+
+      const randomUris = await nftServices.getRandomUris({
+        collectionName: syncColName,
+        count: selectedIds.length,
+      });
+
+      console.log("randomUris", randomUris);
+
+      // {
+      //   status: 'success',
+      //   message: 'Success',
+      //   description: 'The request has succeeded.',
+      //   data: [
+          
+      //       'https://ipfs.filebase.io/ipfs/QmSM2kTZ9ZG9UZi9sL8bnWwbse6iKqX6c1iijZCW4GW6Xs/2.json'
+      //   ]
+      // }
+
+      // if success then upadte nftWithRamdomUri
+      // if (randomUris.status === "success") {
+      //   const result = await nftServices.updateNFTWithRandomUri({
+      //     collectionName: syncColName,
+      //     tokenIds: selectedIds,
+      //     randomUris: randomUris.data,
+      //   });
+
+      //   console.log("result", result);
+
+      //   if (result.status === "success") {
+      //     Swal.fire({
+      //       icon: "success",
+      //       title: "Success",
+      //       text: "NFT updated successfully",
+      //     });
+
+      //     handleClose();
+      //   } else {
+      //     console.log("Error in updating NFT");
+      //     Swal.fire({
+      //       icon: "error",
+      //       title: "Error",
+      //       text: `${
+      //         result?.message || "Failed to update NFT"
+      //       }. Please try again.`,
+      //     });
+      //     handleClose();
+      //   }
+      // } else {
+      //   console.log("Error in getting random uris");
+      //   Swal.fire({
+      //     icon: "error",
+      //     title: "Error",
+      //     text: `${
+      //       randomUris?.message || "Failed to get random uris"
+      //     }. Please try again.`,
+      //   });
+      //   handleClose();
+      // }
+
+
+
+
+      if (randomUris.status === "success") {
+
+
       const response = await syncWithNg({
         syncColName: syncColName,
         syncTkns: selectedIds.sort((a, b) => a - b).join(" "), // Sort and convert to space-separated string
+        selectedUris: randomUris.data,
         wallet:
           user?.walletName === "Ecko Wallet"
             ? "ecko"
@@ -183,6 +250,18 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
       console.log("response", response);
 
       if (response.data.result.status === "success") {
+
+                const resultUpdateMintedUris = await nftServices.updateNFTWithRandomUri({
+          collectionName: syncColName,
+          tokenIds: selectedIds,
+          randomUris: randomUris.data,
+        });
+
+        console.log("resultUpdateMintedUris", resultUpdateMintedUris);
+
+
+      if (resultUpdateMintedUris.status === "success") {
+
         // createNFT
         const data = {
           collectionName: syncColName,
@@ -213,6 +292,17 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
         }
         // handleClose();
       } else {
+        console.log("Error in updating NFT");
+        Swal.fire({
+          icon: "error",
+          title: "Error",
+          text: `${
+            resultUpdateMintedUris?.message || "Failed to update NFT"
+          }. Please try again.`,
+        });
+        handleClose();
+      }
+      } else {
         console.log("Error in syncing with NG");
         Swal.fire({
           icon: "error",
@@ -223,6 +313,17 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
         });
         handleClose();
       }
+    } else {
+      console.log("Error in syncing with NG");
+      Swal.fire({
+        icon: "error",
+        title: "Error",
+        text: `${
+          response?.data?.result?.message || "Failed to sync with NG"
+        }. Please try again.`,
+      });
+      handleClose();
+    }
     } catch (error) {
       console.error("Error syncing:", error);
       Swal.fire({

@@ -1,28 +1,28 @@
 // launchpadAdminPactFunctions.js
 
 const testnetFunctions = {
-    nftCollectionRequest: 'free.lptest001.nft-collection-request',
-    launchCollection: 'free.lptest001.launch-collection',
-    createNgCollection: 'free.lptest001.create-ng-collection',
-    getCollectionId: 'free.lptest001.get-collection-id',
-    createPresale: 'free.lptest001.create-presale',
-    createWhitelist: 'free.lptest001.create-whitelist',
-    addWlAccounts: 'free.lptest001.add-wl-accounts',
-    addPresaleAccounts: 'free.lptest001.add-presale-accounts',
-    createAirdrop: 'free.lptest001.create-airdrop',
-    getUnrevealedTokensForCollection: 'free.lptest001.get-unrevealed-tokens-for-collection',
-    bulkSyncWithNg: 'free.lptest001.bulk-sync-with-ng',
+    nftCollectionRequest: 'free.lptest003.nft-collection-request',
+    launchCollection: 'free.lptest003.launch-collection',
+    createNgCollection: 'free.lptest003.create-ng-collection',
+    getCollectionId: 'free.lptest003.get-collection-id',
+    createPresale: 'free.lptest003.create-presale',
+    createWhitelist: 'free.lptest003.create-whitelist',
+    addWlAccounts: 'free.lptest003.add-wl-accounts',
+    addPresaleAccounts: 'free.lptest003.add-presale-accounts',
+    createAirdrop: 'free.lptest003.create-airdrop',
+    getUnrevealedTokensForCollection: 'free.lptest003.get-unrevealed-tokens-for-collection',
+    bulkSyncWithNg: 'free.lptest003.bulk-sync-with-ng',
     getBalance: 'coin.get-balance',
     transferCreate: 'coin.transfer-create',
-    addRoles: 'free.lptest001.add-roles',
-    addPolicies: 'free.lptest001.add-policies',
-    replacePolicies: 'free.lptest001.replace-policies',
-    getPolicyOfCollection: 'free.lptest001.get-policy-of-collection',
+    addRoles: 'free.lptest003.add-roles',
+    addPolicies: 'free.lptest003.add-policies',
+    replacePolicies: 'free.lptest003.replace-policies',
+    getPolicyOfCollection: 'free.lptest003.get-policy-of-collection',
     updatePrice: 'free.kmpasstest003.update-price',
-    getCollectionCreator: 'free.lptest001.get-collection-creator',
-    getRoyaltyInfo: 'free.lptest001.get-royalty-info',
-    isAdmin: 'free.lptest001.IS_ADMIN',
-    mintProcess: 'free.lptest001.MINTPROCESS'
+    getCollectionCreator: 'free.lptest003.get-collection-creator',
+    getRoyaltyInfo: 'free.lptest003.get-royalty-info',
+    isAdmin: 'free.lptest003.IS_ADMIN',
+    mintProcess: 'free.lptest003.MINTPROCESS'
 };
 
 const mainnetFunctions = {
