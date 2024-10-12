@@ -318,9 +318,7 @@ const UnrevealedTokensModal = ({ open, handleClose, data }) => {
       Swal.fire({
         icon: "error",
         title: "Error",
-        text: `${
-          response?.data?.result?.message || "Failed to sync with NG"
-        }. Please try again.`,
+        text: "Failed to sync with NG. Please try again.",
       });
       handleClose();
     }
