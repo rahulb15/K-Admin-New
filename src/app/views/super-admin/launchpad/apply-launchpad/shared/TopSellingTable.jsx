@@ -41,6 +41,7 @@ import useAuth from "app/hooks/useAuth";
 import {
   useLaunchCollectionMutation,
   useCreateNgCollectionMutation,
+  useDenyCollectionMutation,
 } from "services/launchpad.service";
 import Swal from "sweetalert2";
 import Loader from "app/components/Loader";
@@ -84,6 +85,13 @@ const Small = styled("small")(({ bgcolor }) => ({
   boxShadow: "0 0 2px 0 rgba(0, 0, 0, 0.12), 0 2px 2px 0 rgba(0, 0, 0, 0.24)",
 }));
 
+const FilterBox = styled("div")({
+  display: "flex",
+  alignItems: "center",
+  marginBottom: "20px",
+  gap: "20px",
+});
+
 export default function TopSellingTable(props) {
   console.log("🚀 ~ TopSellingTable ~ props:", props);
   const { login, user } = useAuth();
@@ -116,6 +124,8 @@ export default function TopSellingTable(props) {
     royaltyPercentage: "",
   });
   const [launchCollection] = useLaunchCollectionMutation();
+  const [denyCollection] = useDenyCollectionMutation();
+
   const [loading, setLoading] = useState(false);
 
   const steps = ["Step 1", "Step 2"];
@@ -233,24 +243,43 @@ export default function TopSellingTable(props) {
       showCancelButton: true,
       confirmButtonText: "Yes",
       cancelButtonText: "No",
-    }).then((result) => {
+    }).then(async (result) => {
       if (result.isConfirmed) {
         console.log("🚀 ~ onReject ~ id", data?._id);
-        launchapadServices
-          .rejectLaunchpad(data?._id)
-          .then((response) => {
-            console.log(response);
-            props.setRefresh(!props.refresh);
-            Swal.fire("Rejected!", "The request has been rejected.", "success");
-          })
-          .catch((error) => {
-            console.log(error);
-            Swal.fire(
-              "Error",
-              "An error occurred while rejecting the launchpad.",
-              "error"
-            );
-          });
+
+        const result = await denyCollection({
+          collectionName: data.collectionName,
+          wallet: "CW",
+        });
+        console.log("🚀 ~ onReject ~ result", result);
+
+        if (result?.data?.result?.status === "success") {
+          launchapadServices
+            .rejectLaunchpad(data?._id)
+            .then((response) => {
+              console.log(response);
+              props.setRefresh(!props.refresh);
+              Swal.fire(
+                "Rejected!",
+                "The request has been rejected.",
+                "success"
+              );
+            })
+            .catch((error) => {
+              console.log(error);
+              Swal.fire(
+                "Error",
+                "An error occurred while rejecting the launchpad.",
+                "error"
+              );
+            });
+        } else {
+          Swal.fire(
+            "Error",
+            "An error occurred while rejecting the collection.",
+            "error"
+          );
+        }
       }
     });
   };
@@ -576,156 +605,185 @@ export default function TopSellingTable(props) {
 
   return (
     <>
-      <Grid item lg={8} md={8} sm={12} xs={12}>
-        <Card elevation={3} sx={{ pt: "20px", mb: 3 }}>
-          <CardHeader>
-            <Title>Launchpad Applications List</Title>
-            <Select size="small" defaultValue="paid" variant="outlined">
-              <MenuItem value="paid">Paid</MenuItem>
-              <MenuItem value="unpaid">Unpaid</MenuItem>
-              <MenuItem value="all">All</MenuItem>
-            </Select>
-          </CardHeader>
+      <div style={{ display: "flex", justifyContent: "space-between" }}>
+        <Grid item lg={8} md={8} sm={12} xs={12}>
+          <Card elevation={3} sx={{ pt: "20px", mb: 3 }}>
+            <CardHeader>
+              <Title>Launchpad Applications List</Title>
+              {/* <Select size="small" defaultValue="paid" variant="outlined">
+                <MenuItem value="paid">Paid</MenuItem>
+                <MenuItem value="unpaid">Unpaid</MenuItem>
+                <MenuItem value="all">All</MenuItem>
+              </Select> */}
 
-          <Box overflow="auto">
-            <ProductTable>
-              <TableHead>
-                <TableRow>
-                  <TableCell colSpan={1} sx={{ px: 0 }}>
-                    Cover
-                  </TableCell>
-                  <TableCell colSpan={1} sx={{ px: 0 }}>
-                    Banner
-                  </TableCell>
-                  <TableCell colSpan={2} sx={{ px: 3 }}>
-                    Name
-                  </TableCell>
+              <FilterBox>
+                <FormControl style={{ minWidth: 120 }}>
+                  <InputLabel>Payment Status</InputLabel>
+                  <Select
+                    value={props?.paymentFilter}
+                    onChange={props?.handlePaymentFilterChange}
+                    label="Payment Status"
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="paid">Paid</MenuItem>
+                    <MenuItem value="unpaid">Unpaid</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControl style={{ minWidth: 120 }}>
+                  <InputLabel>Approval Status</InputLabel>
+                  <Select
+                    value={props?.approvalFilter}
+                    onChange={props?.handleApprovalFilterChange}
+                    label="Approval Status"
+                  >
+                    <MenuItem value="all">All</MenuItem>
+                    <MenuItem value="approved">Approved</MenuItem>
+                    <MenuItem value="requested">Requested</MenuItem>
+                  </Select>
+                </FormControl>
+              </FilterBox>
+            </CardHeader>
 
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Creator
-                  </TableCell>
+            <Box overflow="auto">
+              <ProductTable>
+                <TableHead>
+                  <TableRow>
+                    <TableCell colSpan={1} sx={{ px: 0 }}>
+                      Cover
+                    </TableCell>
+                    <TableCell colSpan={1} sx={{ px: 0 }}>
+                      Banner
+                    </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 3 }}>
+                      Name
+                    </TableCell>
 
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    wallet
-                  </TableCell>
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Email
-                  </TableCell>
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Category
-                  </TableCell>
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Launch Date
-                  </TableCell>
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Payment Status
-                  </TableCell>
-                  <TableCell colSpan={1} sx={{ px: 0 }}>
-                    View
-                  </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Creator
+                    </TableCell>
 
-                  <TableCell colSpan={2} sx={{ px: 0 }}>
-                    Action
-                  </TableCell>
-                  {/* )} */}
-                </TableRow>
-              </TableHead>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      wallet
+                    </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Email
+                    </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Category
+                    </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Launch Date
+                    </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Payment Status
+                    </TableCell>
+                    <TableCell colSpan={1} sx={{ px: 0 }}>
+                      View
+                    </TableCell>
 
-              <TableBody>
-                {props?.data?.map(
-                  (product, index) => (
-                    console.log("🚀 ~ TopSellingTable ~ product", product),
-                    (
-                      <TableRow
-                        key={index}
-                        hover
-                        onClick={() => onClickRow(product._id)}
-                        sx={{
-                          cursor: "pointer",
-                          "&:hover": { background: "#ddebf8" },
-                        }}
-                      >
-                        <TableCell colSpan={1} sx={{ px: 0 }}>
-                          <Avatar src={product.collectionCoverImage} />
-                        </TableCell>
-                        <TableCell colSpan={1} sx={{ px: 0 }}>
-                          <Avatar src={product.collectionBannerImage} />
-                        </TableCell>
-                        <TableCell colSpan={2} sx={{ px: 3 }}>
-                          {product.collectionName}
-                        </TableCell>
+                    <TableCell colSpan={2} sx={{ px: 0 }}>
+                      Action
+                    </TableCell>
+                    {/* )} */}
+                  </TableRow>
+                </TableHead>
 
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.creatorName}
-                        </TableCell>
+                <TableBody>
+                  {props?.data?.map(
+                    (product, index) => (
+                      console.log("🚀 ~ TopSellingTable ~ product", product),
+                      (
+                        <TableRow
+                          key={index}
+                          hover
+                          onClick={() => onClickRow(product._id)}
+                          sx={{
+                            cursor: "pointer",
+                            "&:hover": { background: "#ddebf8" },
+                          }}
+                        >
+                          <TableCell colSpan={1} sx={{ px: 0 }}>
+                            <Avatar src={product.collectionCoverImage} />
+                          </TableCell>
+                          <TableCell colSpan={1} sx={{ px: 0 }}>
+                            <Avatar src={product.collectionBannerImage} />
+                          </TableCell>
+                          <TableCell colSpan={2} sx={{ px: 3 }}>
+                            {product.collectionName}
+                          </TableCell>
 
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.creatorWallet}
-                        </TableCell>
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.creatorEmail}
-                        </TableCell>
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.projectCategory}
-                        </TableCell>
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.expectedLaunchDate}
-                        </TableCell>
-                        <TableCell colSpan={2} sx={{ px: 0 }}>
-                          {product.isPaid ? (
-                            <Small bgcolor={bgPrimary}>Paid</Small>
-                          ) : (
-                            <Small bgcolor={bgError}>Not Paid</Small>
-                          )}
-                        </TableCell>
-                        <TableCell colSpan={1} sx={{ px: 0 }}>
-                          <IconButton onClick={(e) => handleOpen(product)}>
-                            <Visibility color="primary" />
-                          </IconButton>
-                        </TableCell>
-                        {user?.role === "superadmin" && (
                           <TableCell colSpan={2} sx={{ px: 0 }}>
-                            {product.isApproved === false &&
-                            product.isRejected === false ? (
-                              <>
-                                <IconButton
-                                  onClick={() => {
-                                    onAccept(product);
-                                  }}
-                                >
-                                  <Done color="primary" />
-                                </IconButton>
-                                &nbsp; &nbsp; &nbsp;
-                                <IconButton
-                                  onClick={() => {
-                                    onReject(product);
-                                  }}
-                                >
-                                  <Close color="error" />
-                                </IconButton>
-                              </>
+                            {product.creatorName}
+                          </TableCell>
+
+                          <TableCell colSpan={2} sx={{ px: 0 }}>
+                            {product.creatorWallet}
+                          </TableCell>
+                          <TableCell colSpan={2} sx={{ px: 0 }}>
+                            {product.creatorEmail}
+                          </TableCell>
+                          <TableCell colSpan={2} sx={{ px: 0 }}>
+                            {product.projectCategory}
+                          </TableCell>
+                          <TableCell colSpan={2} sx={{ px: 0 }}>
+                            {product.expectedLaunchDate}
+                          </TableCell>
+                          <TableCell colSpan={2} sx={{ px: 0 }}>
+                            {product.isPaid ? (
+                              <Small bgcolor={bgPrimary}>Paid</Small>
                             ) : (
-                              (product.isApproved === true && (
-                                <Small bgcolor={bgPrimary}>Approved</Small>
-                              )) ||
-                              (product.isRejected === true && (
-                                <Small bgcolor={bgError}>Rejected</Small>
-                              ))
+                              <Small bgcolor={bgError}>Not Paid</Small>
                             )}
                           </TableCell>
-                        )}
-                      </TableRow>
+                          <TableCell colSpan={1} sx={{ px: 0 }}>
+                            <IconButton onClick={(e) => handleOpen(product)}>
+                              <Visibility color="primary" />
+                            </IconButton>
+                          </TableCell>
+                          {user?.role === "superadmin" && (
+                            <TableCell colSpan={2} sx={{ px: 0 }}>
+                              {product.isApproved === false &&
+                              product.isRejected === false ? (
+                                <>
+                                  <IconButton
+                                    onClick={() => {
+                                      onAccept(product);
+                                    }}
+                                  >
+                                    <Done color="primary" />
+                                  </IconButton>
+                                  &nbsp; &nbsp; &nbsp;
+                                  <IconButton
+                                    onClick={() => {
+                                      onReject(product);
+                                    }}
+                                  >
+                                    <Close color="error" />
+                                  </IconButton>
+                                </>
+                              ) : (
+                                (product.isApproved === true && (
+                                  <Small bgcolor={bgPrimary}>Approved</Small>
+                                )) ||
+                                (product.isRejected === true && (
+                                  <Small bgcolor={bgError}>Rejected</Small>
+                                ))
+                              )}
+                            </TableCell>
+                          )}
+                        </TableRow>
+                      )
                     )
-                  )
-                )}
-              </TableBody>
-            </ProductTable>
-          </Box>
-        </Card>
-      </Grid>
-      <Grid item lg={4} md={4} sm={12} xs={12}>
-        <UpgradeCard transactionData={transactionData} />
-      </Grid>
+                  )}
+                </TableBody>
+              </ProductTable>
+            </Box>
+          </Card>
+        </Grid>
+        <Grid item lg={4} md={4} sm={12} xs={12}>
+          <UpgradeCard transactionData={transactionData} />
+        </Grid>
+      </div>
 
       <Modal open={open} onClose={handleClose}>
         <Box

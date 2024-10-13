@@ -348,6 +348,68 @@ export const launchpadApi = createApi({
       },
     }),
 
+    denyCollection: builder.mutation({
+      async queryFn(args) {
+        const { launchCollectionName, wallet } = args;
+        console.log("denyCollection args:", args);
+        
+        const account = admin;
+        const publicKey = account.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        const pactCode = `(${launchpadPactFunctions.denyCollection} ${JSON.stringify(launchCollectionName)})`;
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+            withCapability(launchpadPactFunctions.isAdmin),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("denyCollection transaction:", txn);
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          console.log("localResponse", localResponse);
+
+          if (localResponse?.result?.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            } else {
+              throw new Error("Unsupported wallet");
+            }
+
+            const response = await signFunction(signedTx);
+            if (response?.result?.status === "success") {
+              console.log(`Collection ${launchCollectionName} has been successfully denied`);
+            }
+            return { data: response };
+          } else {
+            return { error: localResponse?.result?.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      },
+    }),
+
     createNgCollection: builder.mutation({
       async queryFn(args) {
         const { collectionName, wallet } = args;
@@ -1289,6 +1351,7 @@ export const launchpadApi = createApi({
 export const {
   useCollectionRequestMutation,
   useLaunchCollectionMutation,
+  useDenyCollectionMutation,
   useCreateNgCollectionMutation,
   useCollectionIdMutation,
   useCreatePresaleMutation,

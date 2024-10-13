@@ -22,7 +22,8 @@ const testnetFunctions = {
     getCollectionCreator: 'free.lptest003.get-collection-creator',
     getRoyaltyInfo: 'free.lptest003.get-royalty-info',
     isAdmin: 'free.lptest003.IS_ADMIN',
-    mintProcess: 'free.lptest003.MINTPROCESS'
+    mintProcess: 'free.lptest003.MINTPROCESS',
+    denyCollection: 'free.lptest003.deny-collection'
 };
 
 const mainnetFunctions = {
@@ -47,7 +48,8 @@ const mainnetFunctions = {
     getCollectionCreator: 'free.KMLPV2.get-collection-creator',
     getRoyaltyInfo: 'free.KMLPV2.get-royalty-info',
     isAdmin: 'free.KMLPV2.IS_ADMIN',
-    mintProcess: 'free.KMLPV2.MINTPROCESS'
+    mintProcess: 'free.KMLPV2.MINTPROCESS',
+    denyCollection: 'free.KMLPV2.deny-collection'
 };
 
 const networkType = process.env.REACT_APP_KDA_NETWORK_TYPE || 'testnet';

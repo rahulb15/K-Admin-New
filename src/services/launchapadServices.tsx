@@ -2,12 +2,12 @@ import axios from "axios";
 
 const url = process.env.REACT_APP_API_URL;
 
-//get all users with pagination and search with post api
-const getAll = async (page: number, limit: number, search: string) => {
+//get all users with pagination and search with post api       .getAll(page, limit, search, paymentFilter, approvalFilter)
+const getAll = async (page: number, limit: number, search: string, paymentFilter: string, approvalFilter: string) => {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.post(`${url}/launch-collection/getAll`,{limit, page, search}, {
+    const response = await axios.post(`${url}/launch-collection/getAll`,{limit, page, search, paymentFilter, approvalFilter}, {
       headers: {
         Authorization: `Bearer ${token}`
       }

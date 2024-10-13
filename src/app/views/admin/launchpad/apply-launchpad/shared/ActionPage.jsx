@@ -274,6 +274,7 @@ const MintAndLaunch = () => {
   const [open, setOpen] = useState(false);
   const [formType, setFormType] = useState("");
   const dispatch = useDispatch();
+  const [havePresaletime, setHavePresaletime] = useState(false);
   const selection = useSelector(
     (state) => state?.selectionLaunchpad?.selection
   );
