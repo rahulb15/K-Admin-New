@@ -206,6 +206,17 @@ export default function JwtLogin() {
                 }}
               >
                 Launchpad Admin
+                <span
+                  style={{
+                    color: theme.palette.secondary.main,
+                    fontSize: "1.5rem",
+                  }}
+                >
+                  {" "}
+                  {process.env.REACT_APP_KDA_NETWORK_TYPE === "mainnet"
+                    ? "Mainnet"
+                    : "Testnet"}{" "}
+                </span>
               </Typography>
               <ContentBox>
                 <Formik
