@@ -11,7 +11,7 @@ const NotFound = Loadable(lazy(() => import("app/views/super-admin/sessions/NotF
 const JwtSuperLogin = Loadable(lazy(() => import("app/views/super-admin/sessions/JwtLogin")));
 const JwtAdminLogin = Loadable(lazy(() => import("app/views/admin/sessions/JwtAdminLogin")));
 const JwtRegister = Loadable(lazy(() => import("app/views/super-admin/sessions/JwtRegister")));
-const ForgotPassword = Loadable(lazy(() => import("app/views/super-admin/sessions/ForgotPassword")));
+const ForgotPassword = Loadable(lazy(() => import("app/views/admin/sessions/ForgotPassword")));
 
 // Super Admin Pages
 const Analytics = Loadable(lazy(() => import("app/views/super-admin/dashboard/Analytics")));

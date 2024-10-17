@@ -31,6 +31,7 @@ import userServices from "services/userServices.tsx";
 
 import useAuth from "app/hooks/useAuth";
 import { Paragraph } from "app/components/Typography";
+import TwoFactorVerification from "./TwoFactorVerification";
 
 // STYLED COMPONENTS
 const FlexBox = styled(Box)(() => ({
@@ -71,8 +72,8 @@ const StyledRoot = styled("div")(() => ({
 
 // initial login credentials
 const initialValues = {
-  username: "admin",
-  password: "superadmin",
+  username: "",
+  password: "",
   remember: true,
 };
 
@@ -97,7 +98,7 @@ export default function JwtLogin() {
   const [twoFactorCode, setTwoFactorCode] = useState("");
   const [secret, setSecret] = useState("");
   const [token, setToken] = useState("");
-
+  const [twoFAError, setTwoFAError] = useState('');
   const handleFormSubmit = async (values) => {
     setLoading(true);
     try {
@@ -150,32 +151,70 @@ export default function JwtLogin() {
     setError(null);
   };
 
-  const verify2FA = async () => {
-    if (twoFactorCode.trim() === "") {
-      setError("Please enter 2FA code");
-    }
+  // const verify2FA = async () => {
+  //   if (twoFactorCode.trim() === "") {
+  //     setError("Please enter 2FA code");
+  //   }
 
+  //   const data = {
+  //     token: twoFactorCode.trim(),
+  //     secret,
+  //     jwtToken: token,
+  //   };
+
+  //   const response = await userServices.verify2FA(data);
+  //   console.log(response);
+
+  //   if (response?.data?.status === "success") {
+  //     localStorage.setItem("token", token);
+  //     setOpen2FAModal(false);
+  //     setTwoFactorCode("");
+  //     setQrImage("");
+  //     setSecret("");
+  //     navigate("/dashboard");
+  //   } else {
+  //     console.log(response);
+  //     setUsernameError("Invalid 2FA code");
+  //   }
+  // };
+
+
+  const verify2FA = async (code) => {
     const data = {
-      token: twoFactorCode.trim(),
+      token: code,
       secret,
       jwtToken: token,
     };
-
-    const response = await userServices.verify2FA(data);
-    console.log(response);
-
-    if (response?.data?.status === "success") {
-      localStorage.setItem("token", token);
-      setOpen2FAModal(false);
-      setTwoFactorCode("");
-      setQrImage("");
-      setSecret("");
-      navigate("/dashboard");
-    } else {
-      console.log(response);
-      setUsernameError("Invalid 2FA code");
+  
+    try {
+      const response = await userServices.verify2FA(data);
+      if (response?.data?.status === "success") {
+        setTwoFAError('');
+        return true;
+      } else {
+        setTwoFAError("Invalid 2FA code");
+        return false;
+      }
+    } catch (error) {
+      setTwoFAError("An error occurred during verification");
+      return false;
     }
   };
+  
+  const handleSuccessfulVerification = () => {
+    localStorage.setItem("token", token);
+    setOpen2FAModal(false);
+    navigate("/dashboard");
+  };
+
+  const handleClose2FAModal = () => {
+    setOpen2FAModal(false);
+    setTwoFactorCode("");
+    setQrImage("");
+    setSecret("");
+    setError("");
+    setLoading(false);
+  }
 
   return (
     <StyledRoot>
@@ -396,7 +435,7 @@ export default function JwtLogin() {
                   </div>
                 </Modal.Body>
               </Modal> */}
-
+{/* 
               <Modal
                 open={open2FAModal}
                 onClose={() => setOpen2FAModal(false)}
@@ -484,7 +523,65 @@ export default function JwtLogin() {
                     </FlexBox>
                   </Typography>
                 </Box>
-              </Modal>
+              </Modal> */}
+
+{/* <Modal
+              open={open2FAModal}
+              aria-labelledby="2fa-modal-title"
+              aria-describedby="2fa-modal-description"
+            >
+              <Box sx={{
+                position: 'absolute',
+                top: '50%',
+                left: '50%',
+                transform: 'translate(-50%, -50%)',
+                width: 400,
+                bgcolor: 'background.paper',
+                boxShadow: 24,
+                p: 4,
+              }}>
+                {qrImage.length > 0 && (
+                  <Box sx={{ mb: 2, textAlign: 'center' }}>
+                    <Typography variant="subtitle1">Scan QR Code</Typography>
+                    <img src={qrImage} alt="QR Code" style={{ maxWidth: '100%' }} />
+                  </Box>
+                )}
+                <TwoFactorVerification onVerify={verify2FA} error={error} />
+              </Box>
+            </Modal> */}
+
+<Modal
+        open={open2FAModal}
+        onClose={() => handleClose2FAModal()}
+        aria-labelledby="2fa-modal-title"
+        aria-describedby="2fa-modal-description"
+      >
+        <Box sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          width: '90%',
+          maxWidth: 400,
+          bgcolor: 'background.paper',
+          boxShadow: 24,
+          p: 4,
+          borderRadius: '12px',
+        }}>
+          {qrImage && (
+            <Box sx={{ mb: 2, textAlign: 'center' }}>
+              <Typography variant="subtitle1" gutterBottom>Scan QR Code</Typography>
+              <img src={qrImage} alt="QR Code" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+            </Box>
+          )}
+<TwoFactorVerification 
+  onVerify={verify2FA} 
+  error={twoFAError}
+  setError={setTwoFAError}
+  onSuccess={handleSuccessfulVerification}
+/>
+        </Box>
+      </Modal>
             </>
           )}
         </Grid>
