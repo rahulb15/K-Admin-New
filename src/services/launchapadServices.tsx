@@ -3,19 +3,27 @@ import axios from "axios";
 const url = process.env.REACT_APP_API_URL;
 
 //get all users with pagination and search with post api       .getAll(page, limit, search, paymentFilter, approvalFilter)
-const getAll = async (page: number, limit: number, search: string, paymentFilter: string, approvalFilter: string) => {
+const getAll = async (
+  page: number,
+  limit: number,
+  search: string,
+  paymentFilter: string,
+  approvalFilter: string
+) => {
   const token = localStorage.getItem("token");
 
   try {
-    const response = await axios.post(`${url}/launch-collection/getAll`,{limit, page, search, paymentFilter, approvalFilter}, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const response = await axios.post(
+      `${url}/launch-collection/getAll`,
+      { limit, page, search, paymentFilter, approvalFilter },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
-    
-      
+    );
 
-    console.log("🚀 ~ getUsers ~ response:", response)
+    console.log("🚀 ~ getUsers ~ response:", response);
 
     return response.data;
   } catch (error) {
@@ -27,11 +35,15 @@ const getAll = async (page: number, limit: number, search: string, paymentFilter
 const approveLaunchpad = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.put(`${url}/launch-collection/approve/${id}`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const response = await axios.put(
+      `${url}/launch-collection/approve/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
     return response.data;
   } catch (error) {
     return error.response.data;
@@ -42,11 +54,15 @@ const approveLaunchpad = async (id: string) => {
 const rejectLaunchpad = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.put(`${url}/launch-collection/reject/${id}`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const response = await axios.put(
+      `${url}/launch-collection/reject/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
     return response.data;
   } catch (error) {
@@ -54,16 +70,19 @@ const rejectLaunchpad = async (id: string) => {
   }
 };
 
-
 //launchLaunchpad
 const launchLaunchpad = async (id: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.put(`${url}/launch-collection/launch/${id}`, {}, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const response = await axios.put(
+      `${url}/launch-collection/launch/${id}`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
     return response.data;
   } catch (error) {
@@ -75,13 +94,17 @@ const launchLaunchpad = async (id: string) => {
 const getAllApproved = async (page: number, limit: number, search: string) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.post(`${url}/launch-collection/getAllApproved`,{limit, page, search}, {
-      headers: {
-        Authorization: `Bearer ${token}`
+    const response = await axios.post(
+      `${url}/launch-collection/getAllApproved`,
+      { limit, page, search },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
-    console.log("🚀 ~ getUsers ~ response:", response)
+    console.log("🚀 ~ getUsers ~ response:", response);
 
     return response.data;
   } catch (error) {
@@ -96,8 +119,8 @@ const getLaunchpadById = async (id: string) => {
     const token = localStorage.getItem("token");
     const response = await axios.get(`${url}/launch-collection/getById/${id}`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     });
 
     return response.data;
@@ -106,37 +129,110 @@ const getLaunchpadById = async (id: string) => {
   }
 };
 
-
 const uploadImage = async (formData: any) => {
   try {
     const token = localStorage.getItem("token");
-    const response = await axios.post(`${url}/launch-collection/upload-image-data-admin`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        Authorization: `Bearer ${token}`
+    const response = await axios.post(
+      `${url}/launch-collection/upload-image-data-admin`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+          Authorization: `Bearer ${token}`,
+        },
       }
-    });
+    );
 
     return response.data;
   } catch (error) {
     return error.response.data;
   }
+};
+
+const getApplications = async ({
+  page,
+  limit,
+  search,
+  stage,
+  status,
 }
+) => {
+  const token = localStorage.getItem("token");
 
+  console.log("page", page);
+  console.log("limit", limit);
+  console.log("search", search);
+  console.log("stageFilter", stage);
+  console.log("statusFilter", status);
 
+  try {
+    const response = await axios.post(
+      `${url}/stage-application/admin/applications`,
+      { limit, page, search, stage, status },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
+    console.log("🚀 ~ getUsers ~ response:", response);
 
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
 
+const applicationApproval = async ({id}) => {
+  try {
 
+    console.log("🚀 ~ applicationApproval ~ id", id)
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${url}/stage-application/admin/applications/${id}/approve`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
 
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
 
+const applicationRejection = async ({id}) => {
+  try {
+    const token = localStorage.getItem("token");
+    const response = await axios.post(
+      `${url}/stage-application/admin/applications/${id}/reject`,
+      {},
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
 
 export default {
-    getAll,
-    approveLaunchpad,
-    rejectLaunchpad,
-    launchLaunchpad,
-    getAllApproved,
-    getLaunchpadById,
-    uploadImage
+  getAll,
+  approveLaunchpad,
+  rejectLaunchpad,
+  launchLaunchpad,
+  getAllApproved,
+  getLaunchpadById,
+  uploadImage,
+  getApplications,
+  applicationApproval,
+  applicationRejection,
 };

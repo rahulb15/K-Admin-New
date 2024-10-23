@@ -53,7 +53,11 @@ export default function Sidenav({ children }) {
       { name: "Apply Launchpad List", path: "/launchpad/apply-launchpad-list", iconText: "AL", roles: ["superadmin"] },
       { name: "Launchpad Functions", path: "/launchpad/launchpad-functions", iconText: "LF", roles: ["superadmin"] },
       { name: "Priority Pass", path: "/launchpad/priority-pass", iconText: "SL", roles: ["superadmin"] },
-      { name: "Apply Launchpad", path: "/admin/launchpad/apply-launchpad", iconText: "AL", roles: ["user"] }
+      { name: "Apply Launchpad", path: "/admin/launchpad/apply-launchpad", iconText: "AL", roles: ["user"] },
+      { name: "Application List", path: "/admin/application-list", iconText: "AL", roles: ["user"] }
+
+
+
     ] },
     { name: "Blog", path: "/blog", icon: "description", roles: ["superadmin"], children: [
       { name: "Create Blog", path: "/blog/create-blog", iconText: "CB", roles: ["superadmin"] },
@@ -63,6 +67,7 @@ export default function Sidenav({ children }) {
       { name: "Deposits", path: "/payments/deposits", iconText: "D", roles: ["superadmin"] },
       { name: "Transactions", path: "/payments/transactions", iconText: "T", roles: ["superadmin"] }
     ] },
+    { name: "Music Manager", path: "/music-manager", icon: "music_note", roles: ["superadmin"] },
     { name: "Config", path: "/config", icon: "settings", roles: ["superadmin"], children: [
       { name: "Payment Gateway", path: "/config/payment-gateway", iconText: "PG", roles: ["superadmin"] },
       { name: "Ticker Controller", path: "/config/ticker-controller", iconText: "TC", roles: ["superadmin"] },
