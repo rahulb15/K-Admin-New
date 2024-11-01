@@ -68,6 +68,7 @@ export default function Sidenav({ children }) {
       { name: "Transactions", path: "/payments/transactions", iconText: "T", roles: ["superadmin"] }
     ] },
     { name: "Music Manager", path: "/music-manager", icon: "music_note", roles: ["superadmin"] },
+    { name: "Support Manager", path: "/support-manager", icon: "support", roles: ["superadmin"] },
     { name: "Config", path: "/config", icon: "settings", roles: ["superadmin"], children: [
       { name: "Payment Gateway", path: "/config/payment-gateway", iconText: "PG", roles: ["superadmin"] },
       { name: "Ticker Controller", path: "/config/ticker-controller", iconText: "TC", roles: ["superadmin"] },
