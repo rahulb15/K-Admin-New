@@ -1289,24 +1289,91 @@ export const launchpadApi = createApi({
       },
     }),
 
+    // updatePrice: builder.mutation({
+    //   async queryFn(args) {
+    //     const { collectionName, wattetAddress,price, wallet } = args;
+    //     console.log("updatePrice args:", args);
+    //     // const account = await getColCreator(collectionName);
+    //     const account = wattetAddress;
+    //     console.log("account", account);
+    //     const publicKey = account.slice(2, account.length);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+
+    //     // const pactCode = `(free.kmpasstest003.update-price ${price})`;
+    //     const pactCode = `(${launchpadPactFunctions.updatePrice} ${price})`;
+
+    //     const txn = Pact.builder
+    //       .execution(pactCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey, (withCapability) => [
+    //         withCapability("coin.GAS"),
+    //       ])
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: account,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+
+    //     console.log("updatePrice txn", txn);
+
+    //     try {
+    //       const client = new Pact.Pact(NETWORKID);
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+
+    //         const response = await signFunction(signedTx);
+
+    //         return { data: response.result };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       return { error: error.message };
+    //     }
+    //   },
+    // }),
+
     updatePrice: builder.mutation({
       async queryFn(args) {
-        const { collectionName, price, wallet } = args;
-        console.log("updatePrice args:", args);
-        const account = await getColCreator(collectionName);
-        console.log("account", account);
+        const { collectionName, wattetAddress,price, wallet } = args;
+    console.log("updatePrice args:", args);
+        const account = wattetAddress;
         const publicKey = account.slice(2, account.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // const pactCode = `(free.kmpasstest003.update-price ${price})`;
-        const pactCode = `(${launchpadPactFunctions.updatePrice} ${price})`;
+        let decimalPrice;
+        const calculateDecimal = (price) => {
+          const priceString = price.toString();
+          const priceArray = priceString.split(".");
+          if (priceArray.length === 1) {
+            decimalPrice = `${priceArray[0]}.0`;
+          } else {
+            decimalPrice = priceString;
+          }
+        };
+        calculateDecimal(price);
+
+        const pactCode = `(free.lptest003.update-public-price ${JSON.stringify(collectionName)} (read-keyset 'guard) ${decimalPrice})`;
+        // const pactCode = `(${launchpadPactFunctions.updatePrice} ${price})`;
 
         const txn = Pact.builder
           .execution(pactCode)
           .addData("guard", guard)
-          .addSigner(publicKey, (withCapability) => [
-            withCapability("coin.GAS"),
-          ])
+          .addSigner(publicKey)
           .setMeta({
             creationTime: creationTime(),
             sender: account,
@@ -1320,11 +1387,14 @@ export const launchpadApi = createApi({
         console.log("updatePrice txn", txn);
 
         try {
-          const client = new Pact.Pact(NETWORKID);
+          console.log("sign");
+
           const localResponse = await client.local(txn, {
             preflight: false,
             signatureVerification: false,
           });
+
+          console.log("localResponse", localResponse.result);
 
           if (localResponse.result.status === "success") {
             let signedTx;

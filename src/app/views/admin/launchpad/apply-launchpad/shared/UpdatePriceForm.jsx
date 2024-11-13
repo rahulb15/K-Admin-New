@@ -51,9 +51,11 @@ const UpdatePriceForm = () => {
   }, [selection, setValue]);
 
   const onSubmit = async (data) => {
+    console.log("dataaaaaaaaaaaaaa", data);
     try {
       const result = await updatePrice({
         collectionName: data.collectionName,
+        wattetAddress: user?.walletAddress,
         price: parseFloat(data.price),
         wallet:
           user?.walletName === "Ecko Wallet"
