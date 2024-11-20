@@ -224,6 +224,31 @@ const applicationRejection = async ({id}) => {
   }
 };
 
+
+const updatePrice = async (collectionName: string, mintPrice: number, walletAddress: string, wallet: string) => {
+  try {
+    console.log("🚀 ~ updatePrice ~ collectionName", collectionName)
+    const token = localStorage.getItem("token");
+    const response = await axios.put(
+      `${url}/launch-collection/update-mint-price/${collectionName}`,
+      {
+        mintPrice,
+        walletAddress,
+        wallet
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    return response.data;
+  } catch (error) {
+    return error.response.data;
+  }
+};
+
 export default {
   getAll,
   approveLaunchpad,
@@ -235,4 +260,5 @@ export default {
   getApplications,
   applicationApproval,
   applicationRejection,
+  updatePrice
 };

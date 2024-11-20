@@ -1367,8 +1367,10 @@ export const launchpadApi = createApi({
         };
         calculateDecimal(price);
 
-        const pactCode = `(free.lptest003.update-public-price ${JSON.stringify(collectionName)} (read-keyset 'guard) ${decimalPrice})`;
+        // const pactCode = `(free.lptest003.update-public-price ${JSON.stringify(collectionName)} (read-keyset 'guard) ${decimalPrice})`;
         // const pactCode = `(${launchpadPactFunctions.updatePrice} ${price})`;
+
+        const pactCode = `(${launchpadPactFunctions.updatePrice} ${JSON.stringify(collectionName)} (read-keyset 'guard) ${decimalPrice})`;
 
         const txn = Pact.builder
           .execution(pactCode)
@@ -1405,6 +1407,8 @@ export const launchpadApi = createApi({
             }
 
             const response = await signFunction(signedTx);
+
+            console.log("response", response.result);
 
             return { data: response.result };
           } else {

@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import { setRefresh } from "features/refreshSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
 import { useUpdatePriceMutation } from "services/prioritypass.service";
+import launchapadServices from "services/launchapadServices.tsx";
 
 const schema = yup.object().shape({
   price: yup
@@ -39,6 +40,7 @@ const UpdatePriceForm = () => {
   const { user } = useAuth();
 
   const onSubmit = async (data) => {
+    console.log("dataaaaaaaaaaaaaa", data);
     try {
       const result = await updatePrice({
         price: parseFloat(data.price),
@@ -51,6 +53,14 @@ const UpdatePriceForm = () => {
       }).unwrap();
 
       if (result?.status === "success") {
+        const launchapdResult = await launchapadServices.updatePrice(
+          // data.collectionName,
+          "Priority Pass",
+          parseFloat(data.price),
+          user?.walletAddress,
+          user?.walletName
+        );
+        console.log("launchapdResult", launchapdResult);
         Swal.fire({
           icon: "success",
           title: "Success",

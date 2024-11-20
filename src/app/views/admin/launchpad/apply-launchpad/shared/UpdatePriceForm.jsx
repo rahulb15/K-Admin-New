@@ -15,6 +15,7 @@ import Swal from "sweetalert2";
 import { setRefresh } from "features/refreshSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
 import { useUpdatePriceMutation } from "services/launchpad.service";
+import launchapadServices from "services/launchapadServices.tsx";
 
 const schema = yup.object().shape({
   collectionName: yup.string().required("Collection name is required"),
@@ -65,7 +66,26 @@ const UpdatePriceForm = () => {
             : user?.walletName,
       }).unwrap();
 
-      if (result?.success) {
+      console.log("result", result);
+
+      if (result?.status === "success") {
+
+        // const result = await updatePrice(
+        //   data.collectionName,
+        //   parseFloat(data.price),
+        //   user?.walletAddress,
+        //   wallet
+        // );
+
+        const launchapdResult = await launchapadServices.updatePrice(
+          data.collectionName,
+          parseFloat(data.price),
+          user?.walletAddress,
+          user?.walletName
+        );
+
+        console.log("result", launchapdResult);
+
         Swal.fire({
           icon: "success",
           title: "Success",
