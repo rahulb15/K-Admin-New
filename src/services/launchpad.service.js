@@ -855,6 +855,7 @@ export const launchpadApi = createApi({
             preflight: false,
             signatureVerification: false,
           });
+          console.log("localResponse", localResponse);
 
           if (localResponse.result.status === "success") {
             console.log(localResponse.result.data);
@@ -1419,6 +1420,93 @@ export const launchpadApi = createApi({
         }
       },
     }),
+
+    createCustomAirdrop: builder.mutation({
+      async queryFn(args) {
+        const { 
+          collectionName,  // string: name of the collection
+          creatorAddress, // string: address of collection creator
+          airdropAddresses, // array: list of addresses to receive airdrop
+          wallet // string: wallet type ("ecko" or "CW")
+        } = args;
+
+        console.log("createCustomAirdrop args:", args);
+
+        // Get creator's public key from their account address
+        const publicKey = creatorAddress.slice(2, creatorAddress.length);
+        console.log("publicKey:", publicKey);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        // Construct Pact code for the airdrop creation
+        const pactCode = `(${launchpadPactFunctions.createAirdrop}
+          ${JSON.stringify(collectionName)}
+          (read-keyset "guard")
+          ${JSON.stringify(airdropAddresses)}
+        )`;
+
+        console.log("createCustomAirdrop pactCode:", pactCode);
+
+        // Build the transaction
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: creatorAddress,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        console.log("createCustomAirdrop transaction:", txn);
+
+        try {
+          // Perform local execution first
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            // Sign transaction based on wallet type
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            } else {
+              throw new Error("Unsupported wallet type");
+            }
+
+            // Submit and listen for the signed transaction
+            const response = await signFunction(signedTx);
+            
+            if (response.result.status === "success") {
+              console.log(`Airdrop created successfully for collection: ${collectionName}`);
+              return { data: response.result };
+            } else {
+              return { error: response.result.error };
+            }
+
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          console.error("Error in createCustomAirdrop:", error);
+          return { error: error.message };
+        }
+      },
+    }),
+
+
+
+
+
   }),
 });
 
@@ -1442,4 +1530,5 @@ export const {
   useReplacePoliciesMutation,
   useGetPoliciesMutation,
   useUpdatePriceMutation,
+  useCreateCustomAirdropMutation,
 } = launchpadApi;
