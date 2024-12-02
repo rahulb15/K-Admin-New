@@ -44,7 +44,6 @@ const getConfig = async () => {
   }
 };
 
-//get all users with pagination and search with post api
 const getUsers = async (page: number, limit: number, search: string) => {
   try {
     const response = await axios.post(`${url}/user/getAllUsers`, {
