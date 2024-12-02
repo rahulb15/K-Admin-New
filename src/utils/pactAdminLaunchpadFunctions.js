@@ -9,7 +9,7 @@ const testnetFunctions = {
     createWhitelist: 'free.lptest003.create-whitelist',
     addWlAccounts: 'free.lptest003.add-wl-accounts',
     addPresaleAccounts: 'free.lptest003.add-presale-accounts',
-    createAirdrop: 'free.lptest003.create-airdrop',
+    // createAirdrop: 'free.lptest003.create-airdrop',
     getUnrevealedTokensForCollection: 'free.lptest003.get-unrevealed-tokens-for-collection',
     bulkSyncWithNg: 'free.lptest003.bulk-sync-with-ng',
     getBalance: 'coin.get-balance',
@@ -24,7 +24,8 @@ const testnetFunctions = {
     isAdmin: 'free.lptest003.IS_ADMIN',
     mintProcess: 'free.lptest003.MINTPROCESS',
     denyCollection: 'free.lptest003.deny-collection',
-    createAirdrop: 'free.lptest003.create-airdrop'
+    createAirdrop: 'free.lptest003.create-airdrop',
+    bulkAirdrop: 'free.lptest003.bulk-airdrop'
 };
 
 const mainnetFunctions = {
@@ -51,7 +52,8 @@ const mainnetFunctions = {
     isAdmin: 'free.KMLPV2.IS_ADMIN',
     mintProcess: 'free.KMLPV2.MINTPROCESS',
     denyCollection: 'free.KMLPV2.deny-collection',
-    createAirdrop: 'free.KMLPV2.create-airdrop'
+    createAirdrop: 'free.KMLPV2.create-airdrop',
+    bulkAirdrop: 'free.KMLPV2.bulk-airdrop'
 };
 
 const networkType = process.env.REACT_APP_KDA_NETWORK_TYPE || 'testnet';

@@ -1503,6 +1503,86 @@ export const launchpadApi = createApi({
       },
     }),
 
+    bulkAirdrop: builder.mutation({
+      async queryFn(args) {
+        const { 
+          collectionName,
+          airdropData, // Array of {account, tokenId} objects
+          creatorAddress,
+          wallet 
+        } = args;
+
+        console.log("bulkAirdrop args:", args);
+
+        const publicKey = creatorAddress.slice(2, creatorAddress.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+
+        // Format airdrop data according to the required structure
+        const formattedAirdropData = airdropData.map(item => ({
+          "collection-name": collectionName,
+          "account": item.account,
+          "token-id": item.tokenId
+        }));
+
+        const pactCode = `(${launchpadPactFunctions.bulkAirdrop} 
+          ${JSON.stringify(collectionName)}
+          ${JSON.stringify(formattedAirdropData)}
+          ${JSON.stringify(creatorAddress)}
+          (read-keyset "guard")
+        )`;
+
+        console.log("bulkAirdrop pactCode:", pactCode);
+
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS"),
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: creatorAddress,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            } else {
+              throw new Error("Unsupported wallet type");
+            }
+
+            const response = await signFunction(signedTx);
+            
+            if (response.result.status === "success") {
+              console.log(`Bulk airdrop created successfully for collection: ${collectionName}`);
+              return { data: response.result };
+            } else {
+              return { error: response.result.error };
+            }
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          console.error("Error in bulkAirdrop:", error);
+          return { error: error.message };
+        }
+      },
+    }),
+
 
 
 
@@ -1531,4 +1611,5 @@ export const {
   useGetPoliciesMutation,
   useUpdatePriceMutation,
   useCreateCustomAirdropMutation,
+  useBulkAirdropMutation,
 } = launchpadApi;

@@ -260,6 +260,7 @@ import launchapadServices from "services/launchapadServices.tsx";
 import { setSelection } from "features/selectionLaunchpadSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
 import AirdropForm from "./CreateAirDropForm";
+import BulkAirdropForm from "./BulkAirdropForm";
 
 const modalStyle = {
   position: "absolute",
@@ -519,6 +520,23 @@ const MintAndLaunch = () => {
           </Stack>
           </Grid>
 
+          <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Bulk Airdrop
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("createBulkAirdrop")}
+              >
+                Create Bulk Airdrop
+              </Button>
+            </Stack>
+          </Stack>
+          </Grid>
+
 
 
       </Grid>
@@ -538,6 +556,8 @@ const MintAndLaunch = () => {
           {formType === "policyManagement" && <PolicyManagementForm />}
           {formType === "updatePrice" && <UpdatePriceForm />}
           {formType === "createAirdrop" && <AirdropForm />}
+          {formType === "createBulkAirdrop" && <BulkAirdropForm />}
+
         </Box>
       </Modal>
     </Box>

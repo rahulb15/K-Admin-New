@@ -170,7 +170,8 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/kryptomerchadmin:latest
+          # tags: ${{ secrets.DOCKERHUB_USERNAME }}/kryptomerchadmin:latest
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/kryptomerchmainadmin:latest
           build-args: |
             REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }}
             REACT_APP_PROJECT_ID=${{ secrets.REACT_APP_PROJECT_ID }}
