@@ -6,16 +6,6 @@ const url = process.env.REACT_APP_API_URL;
 const getAll = async (page: number, limit: number, search: string) => {
   try {
     const token = localStorage.getItem("token");
-    // const response = await axios.get(
-    //   `${url}/transaction/getAll?limit=${limit}&page=${page}&search=${search}`,
-    //   {
-    //     headers: {
-    //       Authorization: `Bearer ${token}`,
-    //     },
-    //   }
-    // );
-
-    //post api
     const response = await axios.post(
       `${url}/transaction/getAll`,
       {
