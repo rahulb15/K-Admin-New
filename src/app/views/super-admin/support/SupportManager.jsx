@@ -752,7 +752,7 @@ export default function SupportManager() {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      const response = await axios.get('http://localhost:5000/api/v1/support/categories');
+      const response = await axios.get(`${process.env.REACT_APP_API_URL}/support/categories`);
       if (response.data.status === 'success') {
         setCategories(response.data.data);
       }
@@ -780,8 +780,8 @@ export default function SupportManager() {
   const handleCreateCategory = async (formData) => {
     try {
       const url = selectedCategory 
-        ? `http://localhost:5000/api/v1/support/category/${selectedCategory._id}`
-        : 'http://localhost:5000/api/v1/support/category';
+        ? `${process.env.REACT_APP_API_URL}/support/category/${selectedCategory._id}`
+        : `${process.env.REACT_APP_API_URL}/support/category`;
       
       const method = selectedCategory ? 'put' : 'post';
       
@@ -807,7 +807,7 @@ export default function SupportManager() {
   const handleCreateArticle = async (data) => {
     try {
       // Data is already in the correct format due to the updated form structure
-      await axios.post('http://localhost:5000/api/v1/support/article', data);
+      await axios.post(`${process.env.REACT_APP_API_URL}/support/article`, data);
       fetchCategories();
       setArticleDialogOpen(false);
     } catch (error) {
@@ -817,7 +817,7 @@ export default function SupportManager() {
 
   const handleUpdateArticle = async (data) => {
     try {
-      await axios.put('http://localhost:5000/api/v1/support/article', {
+      await axios.put(`${process.env.REACT_APP_API_URL}/support/article`, {
         categoryId: data.categoryId,
         subCategoryTitle: data.subCategoryTitle,
         articleSlug: selectedArticle.article.slug,
