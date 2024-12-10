@@ -28,6 +28,7 @@ const LaunchpadFunctions = Loadable(lazy(() => import("app/views/super-admin/lau
 const PriorityPass = Loadable(lazy(() => import("app/views/super-admin/launchpad/priority-pass/PriorityPass")));
 const MusicManager = Loadable(lazy(() => import("app/views/super-admin/music/AdminMusicManager")));
 const SupportManager = Loadable(lazy(() => import("app/views/super-admin/support/SupportManager")));
+const ConnectManager = Loadable(lazy(() => import("app/views/super-admin/connect/ConnectManager")));
 
 // Admin Pages
 const ApplyLaunchpad = Loadable(lazy(() => import("app/views/admin/launchpad/apply-launchpad/ApplyLaunchpad")));
@@ -57,6 +58,7 @@ const routes = [
       { path: "/launchpad/priority-pass", element: <PriorityPass />, auth: authRoles.superadmin },
       { path: "/music-manager", element: <MusicManager />, auth: authRoles.superadmin },
       { path: "/support-manager", element: <SupportManager />, auth: authRoles.superadmin },
+      { path: "/connect-manager", element: <ConnectManager />, auth: authRoles.superadmin },
       
       // Admin Routes
       { path: "/admin/launchpad/apply-launchpad", element: <ApplyLaunchpad />, auth: authRoles.admin },
