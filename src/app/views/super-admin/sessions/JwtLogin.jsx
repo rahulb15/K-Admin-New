@@ -193,7 +193,7 @@
 //       setError("An unexpected error occurred");
 //     }
 //   };
-  
+
 //   const handleLoginError = (response) => {
 //     setLoading(false);
 //     if (response.message === "Password not match") {
@@ -210,8 +210,6 @@
 //       setPasswordError(false);
 //     }
 //   };
-
-
 
 //   const handleChainWeaverConnect = async () => {
 //     setIsChainWeaverModalOpen(true);
@@ -505,7 +503,6 @@
 //                   Please enter your Chainweaver wallet address to connect
 //                 </Typography>
 
-
 //                 {error && (
 //                   <Paragraph
 //                     color="error"
@@ -518,10 +515,6 @@
 //                     {error}
 //                   </Paragraph>
 //                 )}
-
-
-
-
 
 //                 <Box
 //                   sx={{
@@ -563,8 +556,6 @@
 //                     </Button>
 //                   )}
 
-
-
 //                 </Box>
 //               </Typography>
 //             </Box>
@@ -574,8 +565,6 @@
 //     </StyledRoot>
 //   );
 // }
-
-
 
 import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
@@ -685,7 +674,7 @@ export default function JwtLogin() {
       setPasswordError(false);
       setError(null);
       const response = await chainweaverConnect(walletAddress);
-      if (response && response.status === 'success') {
+      if (response && response.status === "success") {
         setLoading(false);
         setIsChainWeaverModalOpen(false);
         const loginResponse = await superlogin(email, password, response);
@@ -711,7 +700,7 @@ export default function JwtLogin() {
       setError("An unexpected error occurred");
     }
   };
-  
+
   const handleLoginError = (response) => {
     setLoading(false);
     if (response.message === "Password not match") {
@@ -730,8 +719,8 @@ export default function JwtLogin() {
   };
 
   const handleChangeReset = (field) => {
-    if (field === 'email') setEmailError(false);
-    if (field === 'password') setPasswordError(false);
+    if (field === "email") setEmailError(false);
+    if (field === "password") setPasswordError(false);
     setError(null);
   };
 
@@ -741,11 +730,11 @@ export default function JwtLogin() {
       secret,
       jwtToken: token,
     };
-  
+
     try {
       const response = await userServices.verify2FA(data);
       if (response?.data?.status === "success") {
-        setTwoFAError('');
+        setTwoFAError("");
         return true;
       } else {
         setTwoFAError("Invalid 2FA code");
@@ -765,7 +754,7 @@ export default function JwtLogin() {
 
   const handleClose2FAModal = () => {
     setOpen2FAModal(false);
-    setTwoFAError('');
+    setTwoFAError("");
     setLoading(false);
   };
 
@@ -811,7 +800,7 @@ export default function JwtLogin() {
                       value={values.email}
                       onChange={(e) => {
                         handleChange(e);
-                        handleChangeReset('email');
+                        handleChangeReset("email");
                       }}
                       helperText={touched.email && errors.email}
                       error={Boolean(
@@ -831,7 +820,7 @@ export default function JwtLogin() {
                       value={values.password}
                       onChange={(e) => {
                         handleChange(e);
-                        handleChangeReset('password');
+                        handleChangeReset("password");
                       }}
                       helperText={touched.password && errors.password}
                       error={Boolean(
@@ -934,7 +923,9 @@ export default function JwtLogin() {
                 {error}
               </Paragraph>
             )}
-            <Box sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}>
+            <Box
+              sx={{ display: "flex", justifyContent: "space-between", mt: 2 }}
+            >
               <Button
                 variant="contained"
                 onClick={() => setIsChainWeaverModalOpen(false)}
@@ -960,26 +951,34 @@ export default function JwtLogin() {
         aria-labelledby="2fa-modal-title"
         aria-describedby="2fa-modal-description"
       >
-        <Box sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '90%',
-          maxWidth: 400,
-          bgcolor: 'background.paper',
-          boxShadow: 24,
-          p: 4,
-          borderRadius: '12px',
-        }}>
+        <Box
+          sx={{
+            position: "absolute",
+            top: "50%",
+            left: "50%",
+            transform: "translate(-50%, -50%)",
+            width: "90%",
+            maxWidth: 400,
+            bgcolor: "background.paper",
+            boxShadow: 24,
+            p: 4,
+            borderRadius: "12px",
+          }}
+        >
           {qrImage && (
-            <Box sx={{ mb: 2, textAlign: 'center' }}>
-              <Typography variant="subtitle1" gutterBottom>Scan QR Code</Typography>
-              <img src={qrImage} alt="QR Code" style={{ maxWidth: '100%', borderRadius: '8px' }} />
+            <Box sx={{ mb: 2, textAlign: "center" }}>
+              <Typography variant="subtitle1" gutterBottom>
+                Scan QR Code
+              </Typography>
+              <img
+                src={qrImage}
+                alt="QR Code"
+                style={{ maxWidth: "100%", borderRadius: "8px" }}
+              />
             </Box>
           )}
-          <TwoFactorVerification 
-            onVerify={verify2FA} 
+          <TwoFactorVerification
+            onVerify={verify2FA}
             error={twoFAError}
             setError={setTwoFAError}
             onSuccess={handleSuccessfulVerification}

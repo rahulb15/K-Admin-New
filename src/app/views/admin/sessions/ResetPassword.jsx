@@ -1,6 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Card, Grid, styled, TextField, Typography, Snackbar } from "@mui/material";
+import {
+  Button,
+  Card,
+  Grid,
+  styled,
+  TextField,
+  Typography,
+  Snackbar,
+} from "@mui/material";
 import axios from "axios";
 
 // STYLED COMPONENTS
@@ -14,20 +22,20 @@ const StyledRoot = styled("div")(() => ({
   "& .card": {
     maxWidth: 800,
     margin: "1rem",
-    borderRadius: 12
+    borderRadius: 12,
   },
 
   ".img-wrapper": {
     display: "flex",
     padding: "2rem",
     alignItems: "center",
-    justifyContent: "center"
-  }
+    justifyContent: "center",
+  },
 }));
 
 const ContentBox = styled("div")(({ theme }) => ({
   padding: 32,
-  background: theme.palette.background.default
+  background: theme.palette.background.default,
 }));
 
 export default function ResetPassword() {
@@ -37,13 +45,13 @@ export default function ResetPassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState({
     password: "",
-    confirmPassword: ""
+    confirmPassword: "",
   });
   const [isLoading, setIsLoading] = useState(false);
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    isError: false
+    isError: false,
   });
   const [isTokenValid, setIsTokenValid] = useState(true);
 
@@ -54,7 +62,9 @@ export default function ResetPassword() {
         // const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/verify-reset-token/${token}`);
 
         // const response = await axios.get(`http://localhost:5000/api/v1/user/verify-reset-token/${token}`);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/verify-reset-token/${token}`);
+        const response = await axios.get(
+          `${process.env.REACT_APP_API_URL}/user/verify-reset-token/${token}`
+        );
         console.log(response.data);
         setIsTokenValid(response.data.status === "success");
       } catch (error) {
@@ -62,7 +72,7 @@ export default function ResetPassword() {
         setSnackbar({
           open: true,
           message: "Invalid or expired reset link",
-          isError: true
+          isError: true,
         });
       }
     };
@@ -75,7 +85,7 @@ export default function ResetPassword() {
   const validateForm = () => {
     const newErrors = {
       password: "",
-      confirmPassword: ""
+      confirmPassword: "",
     };
     let isValid = true;
 
@@ -95,7 +105,7 @@ export default function ResetPassword() {
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -103,19 +113,22 @@ export default function ResetPassword() {
     setIsLoading(true);
 
     try {
-    //   const response = await axios.post("http://localhost:5000/api/v1/user/reset-password", {
-        const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/reset-password`, {
-        token,
-        password
-      });
+      //   const response = await axios.post("http://localhost:5000/api/v1/user/reset-password", {
+      const response = await axios.post(
+        `${process.env.REACT_APP_API_URL}/user/reset-password`,
+        {
+          token,
+          password,
+        }
+      );
 
       if (response.data.status === "success") {
         setSnackbar({
           open: true,
           message: "Password reset successful! Redirecting to login...",
-          isError: false
+          isError: false,
         });
-        
+
         setTimeout(() => {
           navigate("/session/signin");
         }, 2000);
@@ -123,8 +136,10 @@ export default function ResetPassword() {
     } catch (error) {
       setSnackbar({
         open: true,
-        message: error.response?.data?.description || "An error occurred. Please try again.",
-        isError: true
+        message:
+          error.response?.data?.description ||
+          "An error occurred. Please try again.",
+        isError: true,
       });
     } finally {
       setIsLoading(false);
@@ -164,7 +179,11 @@ export default function ResetPassword() {
         <Grid container>
           <Grid item xs={12}>
             <div className="img-wrapper">
-              <img width="300" src="/assets/images/pact-img-dark.png" alt="Logo" />
+              <img
+                width="300"
+                src="/assets/images/pact-img-dark.png"
+                alt="Logo"
+              />
             </div>
 
             <ContentBox>
@@ -174,7 +193,7 @@ export default function ResetPassword() {
               <Typography variant="body1" gutterBottom>
                 Please enter your new password.
               </Typography>
-              
+
               <form onSubmit={handleFormSubmit}>
                 <TextField
                   type="password"
@@ -232,10 +251,10 @@ export default function ResetPassword() {
         autoHideDuration={6000}
         onClose={handleSnackbarClose}
         message={snackbar.message}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
         ContentProps={{
           style: {
-            backgroundColor: snackbar.isError ? '#f44336' : '#43a047',
+            backgroundColor: snackbar.isError ? "#f44336" : "#43a047",
           },
         }}
       />
