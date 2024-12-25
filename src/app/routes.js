@@ -12,6 +12,9 @@ const JwtSuperLogin = Loadable(lazy(() => import("app/views/super-admin/sessions
 const JwtAdminLogin = Loadable(lazy(() => import("app/views/admin/sessions/JwtAdminLogin")));
 const JwtRegister = Loadable(lazy(() => import("app/views/super-admin/sessions/JwtRegister")));
 const ForgotPassword = Loadable(lazy(() => import("app/views/admin/sessions/ForgotPassword")));
+const ForgotPasswordSuper = Loadable(lazy(() => import("app/views/super-admin/sessions/ForgotPassword")));
+const ResetPassword = Loadable(lazy(() => import("app/views/admin/sessions/ResetPassword")));
+const ResetPasswordSuper = Loadable(lazy(() => import("app/views/super-admin/sessions/ResetPassword")));
 
 // Super Admin Pages
 const Analytics = Loadable(lazy(() => import("app/views/super-admin/dashboard/Analytics")));
@@ -71,6 +74,9 @@ const routes = [
   { path: "/session/su-signin", element: <JwtSuperLogin /> },
   { path: "/session/signup", element: <JwtRegister /> },
   { path: "/session/forgot-password", element: <ForgotPassword /> },
+  { path: "/session/forgot-password-user", element: <ForgotPasswordSuper /> },
+  { path: "/session/reset-password/:token", element: <ResetPassword /> },
+  { path: "/session/reset-password-user/:token", element: <ResetPasswordSuper /> },
   { path: "/su", element: <Navigate to="/session/su-signin" /> },
   { path: "/", element: <Navigate to="/session/signin" /> },
   { path: "*", element: <NotFound /> },

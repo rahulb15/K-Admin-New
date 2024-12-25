@@ -113,7 +113,9 @@ export default function JwtLogin() {
           setOpen2FAModal(true);
           setToken(response.token);
         } else {
-          navigate("/dashboard");
+          // navigate("/dashboard");
+          navigate("/admin/launchpad/apply-launchpad");
+
         }
 
         // navigate("/dashboard");

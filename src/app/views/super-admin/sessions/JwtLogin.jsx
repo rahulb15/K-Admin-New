@@ -865,7 +865,7 @@ export default function JwtLogin() {
                         <Paragraph>Remember Me</Paragraph>
                       </FlexBox>
                       <NavLink
-                        to="/session/forgot-password"
+                        to="/session/forgot-password-user"
                         style={{ color: theme.palette.primary.main }}
                       >
                         Forgot password?
