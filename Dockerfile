@@ -188,7 +188,7 @@ RUN npm run build
 
 FROM node:${NODE_VERSION}-alpine${ALPINE_VERSION}
 
-RUN npm install -g npm@latest
+# RUN npm install -g npm@latest
 RUN npm install -g serve
 
 COPY --from=build-env /usr/src/kryptomerchadmin/build /usr/src/kryptomerchadmin/build
