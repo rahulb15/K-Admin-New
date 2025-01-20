@@ -12,6 +12,7 @@ import {
 } from "redux-persist";
 import storage from "redux-persist/lib/storage";
 import { launchpadApi } from "../services/launchpad.service";
+import { freeMintApi } from "services/freeMint.service";
 import { priorityPassApi } from "services/prioritypass.service";
 import launchpadReducer from "../features/launchpadSlice";
 import searchReducer from "../features/searchSlice";
@@ -27,6 +28,7 @@ const rootReducer = combineReducers({
   launchpadModalAction: launchpadModalActionReducer,
   [launchpadApi.reducerPath]: launchpadApi.reducer,
   [priorityPassApi.reducerPath]: priorityPassApi.reducer,
+  [freeMintApi.reducerPath]: freeMintApi.reducer,
 });
 
 const persistConfig = {
@@ -61,7 +63,8 @@ export const store = configureStore({
     }).concat(
       loggerMiddleware,
       launchpadApi.middleware,
-      priorityPassApi.middleware
+      priorityPassApi.middleware,
+      freeMintApi.middleware
     ),
 });
 

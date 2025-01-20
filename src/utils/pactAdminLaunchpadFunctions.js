@@ -1,6 +1,7 @@
 // launchpadAdminPactFunctions.js
 
 const testnetFunctions = {
+    transfer: 'n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.ledger.TRANSFER',
     nftCollectionRequest: 'free.lptest003.nft-collection-request',
     launchCollection: 'free.lptest003.launch-collection',
     createNgCollection: 'free.lptest003.create-ng-collection',
@@ -25,10 +26,27 @@ const testnetFunctions = {
     mintProcess: 'free.lptest003.MINTPROCESS',
     denyCollection: 'free.lptest003.deny-collection',
     createAirdrop: 'free.lptest003.create-airdrop',
-    bulkAirdrop: 'free.lptest003.bulk-airdrop'
+    bulkAirdrop: 'free.lptest003.bulk-airdrop',
+    getFreeMintEnabled: 'free.lptest003.get-free-mint-enabled',
+    getFreeMintClaimed: 'free.lptest003.get-free-mint-claimed',
+    getAirdropEnabled: 'free.lptest003.get-airdrop-enabled',
+    getAirdropHistory: 'free.lptest003.get-airdrop-history',
+    createFreeMint: 'free.lptest003.create-free-mint',
+    cancelFreeMint: 'free.lptest003.cancel-free-mint',
+    isFreeMintActive: 'free.lptest003.is-free-mint-active',
+    getFreeMintTimeStatus: 'free.lptest003.get-free-mint-time-status',
+    getTotalSupplyFreeMint: 'free.lptest003.get-total-supply-free-mint',
+    getFreeMintClaim: 'free.lptest003.get-free-mint-claim',
+    reserveTokenFreeMint: 'free.lptest003.reserve-token-free-mint',
+    getCurrentIndexFreeMint: 'free.lptest003.get-current-index-free-mint',
+    beforeReservingTokenFreeMint: 'free.lptest003.before-reserving-token-free-mint',
+    getCollectionDetails: 'free.lptest003.get-collection-details',
+    mintNftCapability: 'free.lptest003.MINT-NFT',
+
 };
 
 const mainnetFunctions = {
+    transfer: 'n_4e470a97222514a8662dd1219000a0431451b0ee.ledger.TRANSFER',
     nftCollectionRequest: 'free.KMLPV2.nft-collection-request',
     launchCollection: 'free.KMLPV2.launch-collection',
     createNgCollection: 'free.KMLPV2.create-ng-collection',
@@ -53,7 +71,22 @@ const mainnetFunctions = {
     mintProcess: 'free.KMLPV2.MINTPROCESS',
     denyCollection: 'free.KMLPV2.deny-collection',
     createAirdrop: 'free.KMLPV2.create-airdrop',
-    bulkAirdrop: 'free.KMLPV2.bulk-airdrop'
+    bulkAirdrop: 'free.KMLPV2.bulk-airdrop',
+    getFreeMintEnabled: 'free.KMLPV2.get-free-mint-enabled',
+    getFreeMintClaimed: 'free.KMLPV2.get-free-mint-claimed',
+    getAirdropEnabled: 'free.KMLPV2.get-airdrop-enabled',
+    getAirdropHistory: 'free.KMLPV2.get-airdrop-history',
+    createFreeMint: 'free.KMLPV2.create-free-mint',
+    cancelFreeMint: 'free.KMLPV2.cancel-free-mint',
+    isFreeMintActive: 'free.KMLPV2.is-free-mint-active',
+    getFreeMintTimeStatus: 'free.KMLPV2.get-free-mint-time-status',
+    getTotalSupplyFreeMint: 'free.KMLPV2.get-total-supply-free-mint',
+    getFreeMintClaim: 'free.KMLPV2.get-free-mint-claim',
+    reserveTokenFreeMint: 'free.KMLPV2.reserve-token-free-mint',
+    getCurrentIndexFreeMint: 'free.KMLPV2.get-current-index-free-mint',
+    beforeReservingTokenFreeMint: 'free.KMLPV2.before-reserving-token-free-mint',
+    getCollectionDetails: 'free.KMLPV2.get-collection-details',
+    mintNftCapability: 'free.KMLPV2.MINT-NFT',
 };
 
 const networkType = process.env.REACT_APP_KDA_NETWORK_TYPE || 'testnet';

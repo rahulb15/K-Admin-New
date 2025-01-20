@@ -261,6 +261,9 @@ import { setSelection } from "features/selectionLaunchpadSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
 import AirdropForm from "./CreateAirDropForm";
 import BulkAirdropForm from "./BulkAirdropForm";
+import FreeMintPage from "./FreeMintPage";
+import AirdropDebugPage from "./AirdropDebugPage";
+import {useGetAirdropEnabledQuery } from "services/launchpad.service";
 
 const modalStyle = {
   position: "absolute",
@@ -285,6 +288,10 @@ const MintAndLaunch = () => {
   const launchpadModalAction = useSelector(
     (state) => state?.launchpadModalAction?.isModalOpen
   );
+
+   const { data: airdropEnabled, isLoading: loadingEnabled } = 
+      useGetAirdropEnabledQuery(selection?.collectionName);
+    
 
   useEffect(() => {
     if (!selection?._id) return;
@@ -512,6 +519,7 @@ const MintAndLaunch = () => {
               <Button
                 variant="contained"
                 color="primary"
+                disabled={airdropEnabled === false}
                 onClick={() => handleOpen("createAirdrop")}
               >
                 Create Airdrop
@@ -519,6 +527,25 @@ const MintAndLaunch = () => {
             </Stack>
           </Stack>
           </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Airdrop Debug
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("airdropDebug")}
+              >
+                Airdrop Debug
+              </Button>
+            </Stack>
+          </Stack>
+          </Grid>
+
+
 
           <Grid item xs={12} sm={6} md={4}>
           <Stack spacing={3}>
@@ -533,6 +560,23 @@ const MintAndLaunch = () => {
               >
                 Create Bulk Airdrop
               </Button>
+            </Stack>
+          </Stack>
+          </Grid>
+
+          <Grid item xs={12} sm={6} md={4}>
+          <Stack spacing={3}>
+            <Typography variant="h5" gutterBottom>
+              Free Mint
+            </Typography>
+            <Stack spacing={2}>
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => handleOpen("freeMint")}
+                >
+                Free Mint
+                </Button>
             </Stack>
           </Stack>
           </Grid>
@@ -556,7 +600,10 @@ const MintAndLaunch = () => {
           {formType === "policyManagement" && <PolicyManagementForm />}
           {formType === "updatePrice" && <UpdatePriceForm />}
           {formType === "createAirdrop" && <AirdropForm />}
+          {formType === "airdropDebug" && <AirdropDebugPage />}
           {formType === "createBulkAirdrop" && <BulkAirdropForm />}
+          {formType === "freeMint" && <FreeMintPage />}
+          
 
         </Box>
       </Modal>

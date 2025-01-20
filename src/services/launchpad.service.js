@@ -1503,21 +1503,150 @@ export const launchpadApi = createApi({
       },
     }),
 
+
+    // Add these queries to your launchpadApi endpoints
+getAirdropEnabled: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-airdrop-enabled ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getAirdropEnabled} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+getAirdropHistory: builder.query({
+  async queryFn() {
+    // const pactCode = `(free.lptest003.get-airdrop-history)`;
+    const pactCode = `(${launchpadPactFunctions.getAirdropHistory})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+
+    // bulkAirdrop: builder.mutation({
+    //   async queryFn(args) {
+    //     const { 
+    //       collectionName,
+    //       airdropData, // Array of {account, tokenId} objects
+    //       creatorAddress,
+    //       wallet 
+    //     } = args;
+
+    //     console.log("bulkAirdrop args:", args);
+
+    //     const publicKey = creatorAddress.slice(2, creatorAddress.length);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+
+    //     // Format airdrop data according to the required structure
+    //     const formattedAirdropData = airdropData.map(item => ({
+    //       "collection-name": collectionName,
+    //       "account": item.account,
+    //       "token-id": item.tokenId
+    //     }));
+
+    //     const pactCode = `(${launchpadPactFunctions.bulkAirdrop} 
+    //       ${JSON.stringify(collectionName)}
+    //       ${JSON.stringify(formattedAirdropData)}
+    //       ${JSON.stringify(creatorAddress)}
+    //       (read-keyset "guard")
+    //     )`;
+
+    //     console.log("bulkAirdrop pactCode:", pactCode);
+
+    //     const txn = Pact.builder
+    //       .execution(pactCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey, (withCapability) => [
+    //         withCapability("coin.GAS"),
+    //       ])
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: creatorAddress,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+
+    //     try {
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         } else {
+    //           throw new Error("Unsupported wallet type");
+    //         }
+
+    //         const response = await signFunction(signedTx);
+            
+    //         if (response.result.status === "success") {
+    //           console.log(`Bulk airdrop created successfully for collection: ${collectionName}`);
+    //           return { data: response.result };
+    //         } else {
+    //           return { error: response.result.error };
+    //         }
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       console.error("Error in bulkAirdrop:", error);
+    //       return { error: error.message };
+    //     }
+    //   },
+    // }),
+
+
     bulkAirdrop: builder.mutation({
       async queryFn(args) {
         const { 
           collectionName,
-          airdropData, // Array of {account, tokenId} objects
+          airdropData,
           creatorAddress,
           wallet 
         } = args;
 
-        console.log("bulkAirdrop args:", args);
-
         const publicKey = creatorAddress.slice(2, creatorAddress.length);
         const guard = { keys: [publicKey], pred: "keys-all" };
 
-        // Format airdrop data according to the required structure
         const formattedAirdropData = airdropData.map(item => ({
           "collection-name": collectionName,
           "account": item.account,
@@ -1531,13 +1660,22 @@ export const launchpadApi = createApi({
           (read-keyset "guard")
         )`;
 
-        console.log("bulkAirdrop pactCode:", pactCode);
-
         const txn = Pact.builder
           .execution(pactCode)
           .addData("guard", guard)
           .addSigner(publicKey, (withCapability) => [
             withCapability("coin.GAS"),
+            // Add NFT transfer capability
+            ...formattedAirdropData.map(item => 
+              withCapability(
+                // "n_442d3e11cfe0d39859878e5b1520cd8b8c36e5db.ledger.TRANSFER",
+                launchpadPactFunctions.transfer,
+                item["token-id"],
+                creatorAddress,
+                item.account,
+                1.0
+              )
+            )
           ])
           .setMeta({
             creationTime: creationTime(),
@@ -1555,25 +1693,27 @@ export const launchpadApi = createApi({
             signatureVerification: false,
           });
 
+          console.log("localResponse:", localResponse);
+
           if (localResponse.result.status === "success") {
             let signedTx;
             if (wallet === "ecko") {
               signedTx = await eckoWallet(txn);
             } else if (wallet === "CW") {
               signedTx = await signWithChainweaver(txn);
-            } else {
-              throw new Error("Unsupported wallet type");
             }
 
             const response = await signFunction(signedTx);
             
             if (response.result.status === "success") {
-              console.log(`Bulk airdrop created successfully for collection: ${collectionName}`);
+              console.log("Bulk airdrop successful:", response);
               return { data: response.result };
             } else {
+              console.error("Bulk airdrop failed:", response.result.error);
               return { error: response.result.error };
             }
           } else {
+            console.error("Local execution failed:", localResponse.result.error);
             return { error: localResponse.result.error };
           }
         } catch (error) {
@@ -1582,6 +1722,909 @@ export const launchpadApi = createApi({
         }
       },
     }),
+
+    // createFreeMint: builder.mutation({
+    //   async queryFn(args) {
+    //     const { 
+    //       collectionName, 
+    //       creator,
+    //       freeMintSupply,
+    //       creatorGuard,
+    //       wallet 
+    //     } = args;
+        
+    //     const account = creator;
+    //     const publicKey = account.slice(2, account.length);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+    
+    //     // Create free mint without trying to write to token-ledger directly
+    //     const pactCode = `(free.lptest003.create-free-mint 
+    //       ${JSON.stringify(collectionName)}
+    //       ${JSON.stringify(creator)}
+    //       ${freeMintSupply}
+    //       (read-keyset "guard")
+    //     )`;
+    
+    //     const txn = Pact.builder
+    //       .execution(pactCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey, (withCapability) => [
+    //         withCapability("coin.GAS")
+    //       ])
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: account,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+    
+    //     try {
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+    
+    //         const response = await signFunction(signedTx);
+    //         return { data: response };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       return { error: error.message };
+    //     }
+    //   }
+    // }),
+
+
+    // Add these new endpoints to your launchpadApi
+
+createFreeMint: builder.mutation({
+  async queryFn(args) {
+    const { 
+      collectionName, 
+      creator,
+      freeMintSupply,
+      startTime,
+      endTime,
+      creatorGuard,
+      wallet 
+    } = args;
+    
+    const account = creator;
+    const publicKey = account.slice(2, account.length);
+    const guard = { keys: [publicKey], pred: "keys-all" };
+
+    // const pactCode = `(free.lptest003.create-free-mint 
+    //   ${JSON.stringify(collectionName)}
+    //   ${JSON.stringify(creator)}
+    //   ${freeMintSupply}
+    //   (time ${JSON.stringify(startTime)})
+    //   (time ${JSON.stringify(endTime)})
+    //   (read-keyset "guard")
+    // )`;
+
+    const pactCode = `(${launchpadPactFunctions.createFreeMint}
+      ${JSON.stringify(collectionName)}
+      ${JSON.stringify(creator)}
+      ${freeMintSupply}
+      (time ${JSON.stringify(startTime)})
+      (time ${JSON.stringify(endTime)})
+      (read-keyset "guard")
+    )`;
+
+
+    const txn = Pact.builder
+      .execution(pactCode)
+      .addData("guard", guard)
+      .addSigner(publicKey, (withCapability) => [
+        withCapability("coin.GAS")
+      ])
+      .setMeta({
+        creationTime: creationTime(),
+        sender: account,
+        gasLimit: 150000,
+        chainId: CHAIN_ID,
+        ttl: 28800,
+      })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const localResponse = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+
+      if (localResponse.result.status === "success") {
+        let signedTx;
+        if (wallet === "ecko") {
+          signedTx = await eckoWallet(txn);
+        } else if (wallet === "CW") {
+          signedTx = await signWithChainweaver(txn);
+        }
+
+        const response = await signFunction(signedTx);
+        return { data: response };
+      } else {
+        return { error: localResponse.result.error };
+      }
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+cancelFreeMint: builder.mutation({
+  async queryFn(args) {
+    const { collectionName, creatorGuard, wallet } = args;
+    
+    const account = await getColCreator(collectionName);
+    const publicKey = account.slice(2, account.length);
+    const guard = { keys: [publicKey], pred: "keys-all" };
+
+    // const pactCode = `(free.lptest003.cancel-free-mint 
+    //   ${JSON.stringify(collectionName)}
+    //   (read-keyset "guard")
+    // )`;
+
+    const pactCode = `(${launchpadPactFunctions.cancelFreeMint}
+      ${JSON.stringify(collectionName)}
+      (read-keyset "guard")
+    )`;
+
+
+    const txn = Pact.builder
+      .execution(pactCode)
+      .addData("guard", guard)
+      .addSigner(publicKey, (withCapability) => [
+        withCapability("coin.GAS")
+      ])
+      .setMeta({
+        creationTime: creationTime(),
+        sender: account,
+        gasLimit: 150000,
+        chainId: CHAIN_ID,
+        ttl: 28800,
+      })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const localResponse = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+
+      if (localResponse.result.status === "success") {
+        let signedTx;
+        if (wallet === "ecko") {
+          signedTx = await eckoWallet(txn);
+        } else if (wallet === "CW") {
+          signedTx = await signWithChainweaver(txn);
+        }
+
+        const response = await signFunction(signedTx);
+        return { data: response };
+      } else {
+        return { error: localResponse.result.error };
+      }
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+isFreeMintActive: builder.query({
+  async queryFn(collectionName) {
+    if (!collectionName) return { data: false };
+    
+    // const pactCode = `(free.lptest003.is-free-mint-active ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.isFreeMintActive} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ 
+        chainId: CHAIN_ID,
+        gasLimit: 2500,
+        gasPrice: 0.00000001,
+        ttl: 28800,
+        sender: "" 
+      })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+
+      console.log("Free mint status check response:", response.result);
+      
+      if (response.result.status === "success") {
+        return { data: response.result.data };
+      }
+
+      console.error("Free mint status check failed:", response.result.error);
+      return { data: false }; // Default to inactive if check fails
+    } catch (error) {
+      console.error("Error checking free mint status:", error);
+      return { data: false }; // Default to inactive on error
+    }
+  },
+  providesTags: ['FreeMint']
+}),
+
+// (defun get-free-mint-time-status:object (collection-name:string)
+
+getFreeMintTimeStatus: builder.query({
+  async queryFn(collectionName) {
+    if (!collectionName) return { data: false };
+
+    // const pactCode = `(free.lptest003.get-free-mint-time-status ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getFreeMintTimeStatus} ${JSON.stringify(collectionName)})`;
+
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({
+        chainId: CHAIN_ID,
+        gasLimit: 2500,
+        gasPrice: 0.00000001,
+        ttl: 28800,
+        sender: ""
+      })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+
+      console.log("Free mint time status check response:", response.result);
+
+      if (response.result.status === "success") {
+        return { data: response.result.data };
+      }
+
+      console.error("Free mint time status check failed:", response.result.error);
+      return { data: false }; // Default to inactive if check fails
+    } catch (error) {
+      console.error("Error checking free mint time status:", error);
+      return { data: false }; // Default to inactive on error
+    }
+  },
+  providesTags: ['FreeMint']
+}),
+
+
+
+
+    getFreeMintEnabled: builder.query({
+      async queryFn(collectionName) {
+        // const pactCode = `(free.lptest003.get-free-mint-enabled ${JSON.stringify(collectionName)})`;
+        const pactCode = `(${launchpadPactFunctions.getFreeMintEnabled} ${JSON.stringify(collectionName)})`;
+        
+        const txn = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: CHAIN_ID })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const response = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+          
+          if (response.result.status === "success") {
+            return { data: response.result.data };
+          } else {
+            return { error: response.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+
+    // Get total supply for free mint
+    getFreeMintTotalSupply: builder.query({
+      async queryFn(collectionName) {
+        // const pactCode = `(free.lptest003.get-total-supply-free-mint ${JSON.stringify(collectionName)})`;
+        const pactCode = `(${launchpadPactFunctions.getTotalSupplyFreeMint} ${JSON.stringify(collectionName)})`;
+        
+        const txn = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: CHAIN_ID })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const response = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+          
+          return { data: response.result.data };
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+
+    // Check if user has claimed free mint
+    getFreeMintClaim: builder.query({
+      async queryFn({ collectionName, account }) {
+        // const pactCode = `(free.lptest003.get-free-mint-claim 
+        //   ${JSON.stringify(collectionName)}
+        //   ${JSON.stringify(account)}
+        // )`;
+        const pactCode = `(${launchpadPactFunctions.getFreeMintClaim}
+          ${JSON.stringify(collectionName)}
+          ${JSON.stringify(account)}
+        )`;
+
+        
+        const txn = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: CHAIN_ID })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const response = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+          
+          return { data: response.result.data };
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+
+    // Execute the free mint claim
+    // executeFreeMint: builder.mutation({
+    //   async queryFn({ 
+    //     collectionName, 
+    //     account,
+    //     amount = 1,
+    //     wallet 
+    //   }) {
+    //     console.log("executeFreeMint args:", collectionName, account, amount, wallet);
+    //     const publicKey = account.slice(2);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+    
+    //     // First verify the free mint is ready
+    //     const verifyCode = `(free.lptest003.get-free-mint-enabled ${JSON.stringify(collectionName)})`;
+    //     const verifyTxn = Pact.builder
+    //       .execution(verifyCode)
+    //       .setMeta({ chainId: CHAIN_ID })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+    
+    //     try {
+    //       const verifyResponse = await client.local(verifyTxn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    
+    //       if (verifyResponse.result.status !== "success" || !verifyResponse.result.data) {
+    //         throw new Error("Free mint is not enabled or not properly initialized");
+    //       }
+    
+    //       const pactCode = `(free.lptest003.reserve-token-free-mint
+    //         ${JSON.stringify(collectionName)}
+    //         ${JSON.stringify(account)}
+    //         ${amount}
+    //       )`;
+    
+    //       const txn = Pact.builder
+    //         .execution(pactCode)
+    //         .addData("guard", guard)
+    //         .addSigner(publicKey, (withCapability) => [
+    //           withCapability("coin.GAS"),
+    //           withCapability("free.lptest003.MINT-NFT", account)
+    //         ])
+    //         .setMeta({
+    //           creationTime: creationTime(),
+    //           sender: account,
+    //           gasLimit: 150000,
+    //           chainId: CHAIN_ID,
+    //           ttl: 28800,
+    //         })
+    //         .setNetworkId(NETWORKID)
+    //         .createTransaction();
+    
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+    
+    //         const response = await signFunction(signedTx);
+    //         return { data: response };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       return { error: error.message };
+    //     }
+    //   }
+    // }),
+
+    executeFreeMint: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, account, creator, amount = 1, wallet } = args;
+
+        console.log("executeFreeMint args:", args);
+        
+        const publicKey = account.slice(2);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+    
+        // First check if free mint is initialized
+        // const checkCode = `(free.lptest003.get-free-mint-enabled ${JSON.stringify(collectionName)})`;
+        const checkCode = `(${launchpadPactFunctions.getFreeMintEnabled} ${JSON.stringify(collectionName)})`;
+        
+        const checkTxn = Pact.builder
+          .execution(checkCode)
+          .setMeta({ chainId: CHAIN_ID })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+    
+        try {
+          const checkResponse = await client.local(checkTxn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+
+          console.log("checkResponse", checkResponse.result);
+    
+          if (!checkResponse.result?.data) {
+            throw new Error("Free mint not initialized for this collection");
+          }
+    
+          // const pactCode = `(free.lptest003.reserve-token-free-mint
+          //   ${JSON.stringify(collectionName)}
+          //   ${JSON.stringify(account)}
+          //   ${amount}
+          // )`;
+
+          const pactCode = `(${launchpadPactFunctions.reserveTokenFreeMint}
+            ${JSON.stringify(collectionName)}
+            ${JSON.stringify(account)}
+            ${amount}
+          )`;
+          
+    
+          const txn = Pact.builder
+            .execution(pactCode)
+            .addData("guard", guard)
+            .addSigner(publicKey, (withCapability) => [
+              withCapability("coin.GAS"),
+              // withCapability("free.lptest003.MINT-NFT", account),
+              withCapability(
+                launchpadPactFunctions.mintNftCapability,
+                account
+            ),
+              // withCapability("coin.TRANSFER", account, creator, amount)
+            ])
+            .setMeta({
+              creationTime: creationTime(),
+              sender: account,
+              gasLimit: 150000,
+              chainId: CHAIN_ID,
+              ttl: 28800,
+            })
+            .setNetworkId(NETWORKID)
+            .createTransaction();
+    
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+    
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+    
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+
+    // Get current free mint index
+    getFreeMintCurrentIndex: builder.query({
+      async queryFn(collectionName) {
+        // const pactCode = `(free.lptest003.get-current-index-free-mint ${JSON.stringify(collectionName)})`;
+        const pactCode = `(${launchpadPactFunctions.getCurrentIndexFreeMint} ${JSON.stringify(collectionName)})`;
+        
+        const txn = Pact.builder
+          .execution(pactCode)
+          .setMeta({ chainId: CHAIN_ID })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+
+        try {
+          const response = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+          
+          return { data: response.result.data };
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+    // beforeReservingToken: builder.mutation({
+    //   async queryFn(args) {
+    //     const { collectionName, account, wallet } = args;
+    //     console.log("beforeReservingToken args:", args);
+        
+    //     const pactCode = `(free.lptest003.before-reserving-token-free-mint
+    //       ${JSON.stringify(collectionName)}
+    //       ${JSON.stringify(account)}
+    //     )`;
+    
+    //     const publicKey = account.slice(2);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+    
+    //     const txn = Pact.builder
+    //       .execution(pactCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey, (withCapability) => [
+    //         withCapability("coin.GAS"),
+    //       ])
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: account,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+    
+    //     try {
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    //       console.log("localResponse", localResponse);
+    
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+    
+    //         const response = await signFunction(signedTx);
+    //         return { data: response };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       return { error: error.message };
+    //     }
+    //   }
+    // }),
+
+    // beforeReservingToken: builder.mutation({
+    //   async queryFn(args) {
+    //     const { collectionName, account, wallet } = args;
+        
+    //     const publicKey = account.slice(2);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+    
+    //     // Initialize token-record if it doesn't exist
+    //     const initTokenRecordCode = `(free.lptest003.insert token-record "${collectionName}" {
+    //       "uri-list": [],
+    //       "current-length": 0
+    //     })`;
+    
+    //     const tokenRecordTxn = Pact.builder
+    //       .execution(initTokenRecordCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey)
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: account,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+    
+    //     try {
+    //       // First try to initialize token-record
+    //       await client.local(tokenRecordTxn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    
+    //       // Then proceed with before-reserving
+    //       const pactCode = `(free.lptest003.before-reserving-token-free-mint
+    //         ${JSON.stringify(collectionName)}
+    //         ${JSON.stringify(account)}
+    //       )`;
+    
+    //       const txn = Pact.builder
+    //         .execution(pactCode)
+    //         .addData("guard", guard)
+    //         .addSigner(publicKey, (withCapability) => [
+    //           withCapability("coin.GAS")
+    //         ])
+    //         .setMeta({
+    //           creationTime: creationTime(),
+    //           sender: account,
+    //           gasLimit: 150000,
+    //           chainId: CHAIN_ID,
+    //           ttl: 28800,
+    //         })
+    //         .setNetworkId(NETWORKID)
+    //         .createTransaction();
+    
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+
+    //       console.log("localResponse", localResponse);
+    
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+    
+    //         const response = await signFunction(signedTx);
+    //         return { data: response };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       return { error: error.message };
+    //     }
+    //   }
+    // }),
+
+    // beforeReservingToken: builder.mutation({
+    //   async queryFn(args) {
+    //     const { collectionName, account, wallet } = args;
+        
+    //     const publicKey = account.slice(2);
+    //     const guard = { keys: [publicKey], pred: "keys-all" };
+    
+    //     // Remove the token-record initialization and directly call before-reserving
+    //     const pactCode = `(free.lptest003.before-reserving-token-free-mint
+    //       ${JSON.stringify(collectionName)}
+    //       ${JSON.stringify(account)}
+    //     )`;
+    
+    //     const txn = Pact.builder
+    //       .execution(pactCode)
+    //       .addData("guard", guard)
+    //       .addSigner(publicKey, (withCapability) => [
+    //         withCapability("coin.GAS")
+    //       ])
+    //       .setMeta({
+    //         creationTime: creationTime(),
+    //         sender: account,
+    //         gasLimit: 150000,
+    //         chainId: CHAIN_ID,
+    //         ttl: 28800,
+    //       })
+    //       .setNetworkId(NETWORKID)
+    //       .createTransaction();
+    
+    //     try {
+    //       const localResponse = await client.local(txn, {
+    //         preflight: false,
+    //         signatureVerification: false,
+    //       });
+    
+    //       if (localResponse.result.status === "success") {
+    //         let signedTx;
+    //         if (wallet === "ecko") {
+    //           signedTx = await eckoWallet(txn);
+    //         } else if (wallet === "CW") {
+    //           signedTx = await signWithChainweaver(txn);
+    //         }
+    
+    //         const response = await signFunction(signedTx);
+    //         return { data: response };
+    //       } else {
+    //         return { error: localResponse.result.error };
+    //       }
+    //     } catch (error) {
+    //       // If error indicates record exists, treat as success
+    //       if (error.message?.includes("row found for key")) {
+    //         return { data: { status: "success" } };
+    //       }
+    //       return { error: error.message };
+    //     }
+    //   }
+    // }),
+
+    beforeReservingToken: builder.mutation({
+      async queryFn(args) {
+        const { collectionName, account, wallet } = args;
+        
+        const publicKey = account.slice(2);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+    
+        // const pactCode = `(free.lptest003.before-reserving-token-free-mint
+        //   ${JSON.stringify(collectionName)}
+        //   ${JSON.stringify(account)}
+        // )`;
+        const pactCode = `(${launchpadPactFunctions.beforeReservingTokenFreeMint}
+          ${JSON.stringify(collectionName)}
+          ${JSON.stringify(account)}
+        )`;
+
+    
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS")
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+    
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+    
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+    
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            // If error indicates record exists, treat as success
+            if (localResponse.result.error.message?.includes("row found for key")) {
+              return { data: { status: "success" } };
+            }
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          // Also check the error message in the catch block
+          if (error.message?.includes("row found for key")) {
+            return { data: { status: "success" } };
+          }
+          return { error: error.message };
+        }
+      }
+    }),
+
+    // Add these queries to your launchpad.service.js
+
+
+
+// Get collection details 
+getCollectionData: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-collection-details ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getCollectionDetails} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+// Get current index for free mint
+getCurrentIndex: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-current-index-free-mint ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getCurrentIndexFreeMint} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+// Get claim status
+getClaimStatus: builder.query({
+  async queryFn({collectionName, account}) {
+    console.log("getClaimStatus args:", collectionName, account);
+    // const pactCode = `(free.lptest003.get-free-mint-claim ${JSON.stringify(collectionName)} ${JSON.stringify(account)})`;
+    const pactCode = `(${launchpadPactFunctions.getFreeMintClaim} ${JSON.stringify(collectionName)} ${JSON.stringify(account)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+})
 
 
 
@@ -1611,5 +2654,22 @@ export const {
   useGetPoliciesMutation,
   useUpdatePriceMutation,
   useCreateCustomAirdropMutation,
+  useGetAirdropEnabledQuery,
+  useGetAirdropHistoryQuery,
   useBulkAirdropMutation,
+  useCreateFreeMintMutation,
+  useCancelFreeMintMutation,
+  useIsFreeMintActiveQuery,
+  useGetFreeMintTimeStatusQuery,
+  useGetFreeMintEnabledQuery,
+  useGetFreeMintTotalSupplyQuery,
+  useGetFreeMintClaimQuery,
+  useExecuteFreeMintMutation,
+  useGetFreeMintCurrentIndexQuery,
+  useBeforeReservingTokenMutation,
+  useGetCollectionDataQuery,
+  useGetCurrentIndexQuery,
+  useGetClaimStatusQuery
+
+ 
 } = launchpadApi;
