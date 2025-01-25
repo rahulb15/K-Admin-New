@@ -1370,6 +1370,7 @@ import * as yup from "yup";
 import Swal from "sweetalert2";
 import { setRefresh } from "features/refreshSlice";
 import { setModalOpen } from "features/launchpadModalActionSlice";
+import DebugPanel from './DebugPanel';
 
 // Blockchain operations import
 import {
@@ -2211,66 +2212,66 @@ const ClaimFreeMintTab = () => {
   );
 };
 
-const DebugPanel = ({ collectionName, userAccount }) => {
-  const { data: totalSupply, isLoading: loadingSupply } = useGetFreeMintTotalSupplyQuery(collectionName);
-  const { data: currentIndex, isLoading: loadingIndex } = useGetCurrentIndexQuery(collectionName);
-  const { data: claimStatus, isLoading: loadingClaim } = useGetClaimStatusQuery({
-    collectionName,
-    account: userAccount
-  });
-  const { data: freeMintStatus } = useIsFreeMintActiveQuery(collectionName);
+// const DebugPanel = ({ collectionName, userAccount }) => {
+//   const { data: totalSupply, isLoading: loadingSupply } = useGetFreeMintTotalSupplyQuery(collectionName);
+//   const { data: currentIndex, isLoading: loadingIndex } = useGetCurrentIndexQuery(collectionName);
+//   const { data: claimStatus, isLoading: loadingClaim } = useGetClaimStatusQuery({
+//     collectionName,
+//     account: userAccount
+//   });
+//   const { data: freeMintStatus } = useIsFreeMintActiveQuery(collectionName);
 
-  if (loadingSupply || loadingIndex || loadingClaim) {
-    return (
-      <Box display="flex" justifyContent="center" p={3}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+//   if (loadingSupply || loadingIndex || loadingClaim) {
+//     return (
+//       <Box display="flex" justifyContent="center" p={3}>
+//         <CircularProgress />
+//       </Box>
+//     );
+//   }
 
-  return (
-    <Paper sx={{ mt: 3, p: 2 }}>
-      <Typography variant="h6" gutterBottom>
-        Free Mint Status
-      </Typography>
+//   return (
+//     <Paper sx={{ mt: 3, p: 2 }}>
+//       <Typography variant="h6" gutterBottom>
+//         Free Mint Status
+//       </Typography>
 
-      <Grid container spacing={2}>
-        <Grid item xs={12} md={6}>
-          <Alert severity="info">
-            Total Supply: {totalSupply || 0}
-          </Alert>
-        </Grid>
+//       <Grid container spacing={2}>
+//         <Grid item xs={12} md={6}>
+//           <Alert severity="info">
+//             Total Supply: {totalSupply || 0}
+//           </Alert>
+//         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Alert severity="info">
-            Current Index: {currentIndex || 0}
-          </Alert>
-        </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Alert severity="info">
+//             Current Index: {currentIndex || 0}
+//           </Alert>
+//         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Alert severity={claimStatus ? "warning" : "success"}>
-            Claimed: {claimStatus ? "Yes" : "No"}
-          </Alert>
-        </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Alert severity={claimStatus ? "warning" : "success"}>
+//             Claimed: {claimStatus ? "Yes" : "No"}
+//           </Alert>
+//         </Grid>
 
-        <Grid item xs={12} md={6}>
-          <Alert severity={freeMintStatus?.isActive ? "success" : "warning"}>
-            Status: {freeMintStatus?.isActive ? "Active" : "Inactive"}
-          </Alert>
-        </Grid>
+//         <Grid item xs={12} md={6}>
+//           <Alert severity={freeMintStatus?.isActive ? "success" : "warning"}>
+//             Status: {freeMintStatus?.isActive ? "Active" : "Inactive"}
+//           </Alert>
+//         </Grid>
 
-        {freeMintStatus?.startTime && (
-          <Grid item xs={12}>
-            <Alert severity="info">
-              Time Window: {dayjs(freeMintStatus.startTime).format('YYYY-MM-DD HH:mm:ss')}
-              {" → "}
-              {dayjs(freeMintStatus.endTime).format('YYYY-MM-DD HH:mm:ss')}
-            </Alert>
-          </Grid>
-        )}
-      </Grid>
-    </Paper>
-  );
-};
+//         {freeMintStatus?.startTime && (
+//           <Grid item xs={12}>
+//             <Alert severity="info">
+//               Time Window: {dayjs(freeMintStatus.startTime).format('YYYY-MM-DD HH:mm:ss')}
+//               {" → "}
+//               {dayjs(freeMintStatus.endTime).format('YYYY-MM-DD HH:mm:ss')}
+//             </Alert>
+//           </Grid>
+//         )}
+//       </Grid>
+//     </Paper>
+//   );
+// };
 
 export default FreeMintPage;

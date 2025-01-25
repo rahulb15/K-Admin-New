@@ -14,6 +14,10 @@ import {
   useGetCollectionDataQuery,
   useGetCurrentIndexQuery,
   useGetClaimStatusQuery,
+  useGetFreeMintsUsedQuery,
+  useGetAvailableNormalSupplyQuery,
+  useGetTotalMintsQuery,
+  useDebugFreeMintQuery,
 } from 'services/launchpad.service';
 
 const DebugPanel = ({ collectionName, userAccount }) => {
@@ -25,6 +29,23 @@ const DebugPanel = ({ collectionName, userAccount }) => {
   
   const { data: currentIndex, isLoading: loadingIndex } = 
     useGetCurrentIndexQuery(collectionName);
+
+  const { data: freeMintsUsed, isLoading: loadingFreeMints } =
+    useGetFreeMintsUsedQuery(collectionName);
+
+    console.log(freeMintsUsed);
+
+  const { data: availableNormalSupply, isLoading: loadingNormalSupply } =
+    useGetAvailableNormalSupplyQuery(collectionName);
+
+
+  const { data: debugData, isLoading: loadingDebugData } =
+    useDebugFreeMintQuery(collectionName);
+
+  const { data: totalMints, isLoading: loadingTotalMints } =
+    useGetTotalMintsQuery(collectionName);
+
+  
   
   const { data: claimStatus, isLoading: loadingClaim } = 
     useGetClaimStatusQuery({
@@ -65,6 +86,26 @@ const DebugPanel = ({ collectionName, userAccount }) => {
 
       <Accordion>
         <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Debug Data</Typography> 
+        </AccordionSummary>
+        <AccordionDetails>
+          {formatData(debugData)}
+        </AccordionDetails>
+      </Accordion>
+
+
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Total Mints</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {formatData(totalMints)}
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
           <Typography>Free Mint Supply</Typography>
         </AccordionSummary>
         <AccordionDetails>
@@ -91,6 +132,32 @@ const DebugPanel = ({ collectionName, userAccount }) => {
           {formatData(collectionData)}
         </AccordionDetails>
       </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Available Normal Supply</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {formatData(availableNormalSupply)}
+        </AccordionDetails>
+      </Accordion>
+
+      <Accordion>
+        <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+          <Typography>Free Mint Usage</Typography>
+        </AccordionSummary>
+        <AccordionDetails>
+          {formatData(freeMintsUsed)}
+        </AccordionDetails>
+      </Accordion>
+
+     
+
+     
+
+
+
+
     </Box>
   );
 };

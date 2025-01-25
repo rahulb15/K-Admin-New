@@ -1925,6 +1925,52 @@ cancelFreeMint: builder.mutation({
   }
 }),
 
+// (defun debug-free-mint:object (collection-name:string)
+debugFreeMint: builder.query({
+  async queryFn(collectionName) {
+    if (!collectionName) return { data: false };
+
+    // const pactCode = `(free.lptest003.debug-free-mint ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.debugFreeMint} ${JSON.stringify(collectionName)})`;
+
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({
+        chainId: CHAIN_ID,
+        gasLimit: 2500,
+        gasPrice: 0.00000001,
+        ttl: 28800,
+        sender: ""
+      })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+
+      console.log("Free mint debug response:", response.result);
+
+      if (response.result.status === "success") {
+        return { data: response.result.data };
+      }
+
+      console.error("Free mint debug failed:", response.result.error);
+      return { data: false }; // Default to inactive if check fails
+    } catch (error) {
+      console.error("Error debugging free mint:", error);
+      return { data: false }; // Default to inactive on error
+    }
+  },
+  providesTags: ['FreeMint']
+}),
+
+
+
+
+
 isFreeMintActive: builder.query({
   async queryFn(collectionName) {
     if (!collectionName) return { data: false };
@@ -1965,6 +2011,86 @@ isFreeMintActive: builder.query({
   },
   providesTags: ['FreeMint']
 }),
+
+// get-free-mints-used
+getFreeMintsUsed: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-free-mints-used ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getFreeMintsUsed} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+// get-available-normal-supply
+getAvailableNormalSupply: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-available-normal-supply ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getAvailableNormalSupply} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+// get-total-mints
+getTotalMints: builder.query({
+  async queryFn(collectionName) {
+    // const pactCode = `(free.lptest003.get-total-mints ${JSON.stringify(collectionName)})`;
+    const pactCode = `(${launchpadPactFunctions.getTotalMints} ${JSON.stringify(collectionName)})`;
+    
+    const txn = Pact.builder
+      .execution(pactCode)
+      .setMeta({ chainId: CHAIN_ID })
+      .setNetworkId(NETWORKID)
+      .createTransaction();
+
+    try {
+      const response = await client.local(txn, {
+        preflight: false,
+        signatureVerification: false,
+      });
+      
+      return { data: response.result.data };
+    } catch (error) {
+      return { error: error.message };
+    }
+  }
+}),
+
+
+
+
+
 
 // (defun get-free-mint-time-status:object (collection-name:string)
 
@@ -2659,7 +2785,11 @@ export const {
   useBulkAirdropMutation,
   useCreateFreeMintMutation,
   useCancelFreeMintMutation,
+  useDebugFreeMintQuery,
   useIsFreeMintActiveQuery,
+  useGetFreeMintsUsedQuery,
+  useGetAvailableNormalSupplyQuery,
+  useGetTotalMintsQuery,
   useGetFreeMintTimeStatusQuery,
   useGetFreeMintEnabledQuery,
   useGetFreeMintTotalSupplyQuery,

@@ -42,6 +42,10 @@ const testnetFunctions = {
     beforeReservingTokenFreeMint: 'free.lptest003.before-reserving-token-free-mint',
     getCollectionDetails: 'free.lptest003.get-collection-details',
     mintNftCapability: 'free.lptest003.MINT-NFT',
+    getTotalMints: 'free.lptest003.get-total-mints',
+    getAvailableNormalSupply: 'free.lptest003.get-available-normal-supply',
+    getFreeMintsUsed: 'free.lptest003.get-free-mints-used',
+    debugFreeMint: 'free.lptest003.debug-free-mint',
 
 };
 
@@ -87,6 +91,10 @@ const mainnetFunctions = {
     beforeReservingTokenFreeMint: 'free.KMLPV2.before-reserving-token-free-mint',
     getCollectionDetails: 'free.KMLPV2.get-collection-details',
     mintNftCapability: 'free.KMLPV2.MINT-NFT',
+    getTotalMints: 'free.KMLPV2.get-total-mints',
+    getAvailableNormalSupply: 'free.KMLPV2.get-available-normal-supply',
+    getFreeMintsUsed: 'free.KMLPV2.get-free-mints-used',
+    debugFreeMint: 'free.KMLPV2.debug-free-mint',
 };
 
 const networkType = process.env.REACT_APP_KDA_NETWORK_TYPE || 'testnet';
