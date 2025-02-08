@@ -348,6 +348,80 @@ export const launchpadApi = createApi({
       },
     }),
 
+    updateCollectionDetails: builder.mutation({
+      async queryFn(args) {
+        const { 
+          creator,
+          creatorGuard,
+          collectionName,
+          description,
+          category,
+          coverImageUrl,
+          bannerImageUrl,
+          wallet 
+        } = args;
+    
+        console.log("updateCollectionDetails args:", args);
+        
+        const account = creator;
+        const sampleaccount = "k:e29791d246eaa1749b047836f8b23182ea0163efb257ca7e2fa0f07de827b0be";
+        const publicKey = sampleaccount.slice(2, account.length);
+        const guard = { keys: [publicKey], pred: "keys-all" };
+    
+        const pactCode = `(${launchpadPactFunctions.updateCollectionDetails}
+          ${JSON.stringify(creator)}
+          (read-keyset "guard")
+          ${JSON.stringify(collectionName)}
+          ${JSON.stringify(description)}
+          ${JSON.stringify(category)}
+          ${JSON.stringify(coverImageUrl)}
+          ${JSON.stringify(bannerImageUrl)}
+        )`;
+    
+        const txn = Pact.builder
+          .execution(pactCode)
+          .addData("guard", guard)
+          .addSigner(publicKey, (withCapability) => [
+            withCapability("coin.GAS")
+          ])
+          .setMeta({
+            creationTime: creationTime(),
+            sender: account,
+            gasLimit: 150000,
+            chainId: CHAIN_ID,
+            ttl: 28800,
+          })
+          .setNetworkId(NETWORKID)
+          .createTransaction();
+    
+        try {
+          const localResponse = await client.local(txn, {
+            preflight: false,
+            signatureVerification: false,
+          });
+    
+          if (localResponse.result.status === "success") {
+            let signedTx;
+            if (wallet === "ecko") {
+              signedTx = await eckoWallet(txn);
+            } else if (wallet === "CW") {
+              signedTx = await signWithChainweaver(txn);
+            }
+    
+            const response = await signFunction(signedTx);
+            return { data: response };
+          } else {
+            return { error: localResponse.result.error };
+          }
+        } catch (error) {
+          return { error: error.message };
+        }
+      }
+    }),
+
+
+
+
     denyCollection: builder.mutation({
       async queryFn(args) {
         const { launchCollectionName, wallet } = args;
@@ -1421,6 +1495,11 @@ export const launchpadApi = createApi({
       },
     }),
 
+
+
+
+
+
     createCustomAirdrop: builder.mutation({
       async queryFn(args) {
         const { 
@@ -1502,6 +1581,10 @@ export const launchpadApi = createApi({
         }
       },
     }),
+
+
+
+
 
 
     // Add these queries to your launchpadApi endpoints
@@ -2762,6 +2845,7 @@ getClaimStatus: builder.query({
 export const {
   useCollectionRequestMutation,
   useLaunchCollectionMutation,
+  useUpdateCollectionDetailsMutation,
   useDenyCollectionMutation,
   useCreateNgCollectionMutation,
   useCollectionIdMutation,
